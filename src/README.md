@@ -1,5 +1,10 @@
-### Message usage
+### Create instance of zkChat
+```
+import { zkChat } from '@waku/zk-chat'
+await zkChat.create(appName, waku) // more to come
+```
 
+### Message usage
 ```
 message Message {
   optional string message = 1;

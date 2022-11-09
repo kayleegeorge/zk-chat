@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/kayleegeorge/zk-chat#readme",
   "dependencies": {
-    "js-waku": "^0.30.0"
+    "js-waku": "^0.30.0",
+    "protons": "^6.0.1"
   }
 }
