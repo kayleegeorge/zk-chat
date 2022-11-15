@@ -3,14 +3,13 @@ import { WakuMessagesSetup } from '../types/WakuMessagesSetup'
 import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
 import { ChatMessage, proto } from "../types/ChatMessage";
 import { Web3Provider } from '@ethersproject/providers';
-import { WakuMessage } from "js-waku/dist/proto/filter";
 import { createWaku } from "../utils/createWaku";
 
 // to store the messages
 type WakuMessageStore = {
     contentTopic: string
     hashMap: { [id: string]: boolean }
-    arr: any[]
+    msgs: Message[]
     updateFunction: (msg: Message[]) => void;
 }
 
@@ -22,7 +21,7 @@ export class zkChat {
     protected appName: string
     protected waku: Waku | undefined
     protected chainId = 0
-    protected provider: Web3Provider
+    protected provider: Web3Provider | undefined
     protected wakuMessages: WakuMessageStores = {}
     protected observers: { callback : (msg: Message) => void; topics: string[] }[] = [] // need observers to receive
     protected deleteObserver: (() => void) | undefined 
@@ -37,11 +36,12 @@ export class zkChat {
         this.appName = appName
         this.waku = waku
         this.chainId = chainId
+        this.provider = provider
         wakuMessagesSetup.forEach((setupData) => {
           this.wakuMessages[setupData.name] = {
             contentTopic: `/${this.appName}/0.0.1/${setupData.name}/proto/`,
             hashMap: {},
-            arr: [],
+            msgs: [],
             updateFunction: (msg) => this.decodeAndSetArray(msg, setupData)
           }
         })
@@ -50,11 +50,17 @@ export class zkChat {
 
       protected async setObserver() {
         this.waku = await createWaku();
+
         await Promise.all(
           Object.values(this.wakuMessages).map(async (msgObj) => {
-            // const storeMessages = await this.waku?.store?.queryHistory([msgObj.contentTopic]) TODO: find out queryHisto
-            // msgObj.updateFunction(storeMessages ?? [])
-            this.deleteObserver = this?.waku?.relay?.addObserver(proto.ChatMessage.decode(msgObj), (msg) => msgObj.updateFunction([msg]),)
+            const decoder = new DecoderV0(msgObj.contentTopic)
+            if (!decoder) return;
+            await this.waku?.store?.queryCallbackOnPromise([decoder], async (msgPromise) => {
+              const msg = await msgPromise;
+              if (msg) this.wakuMessages[msgObj.contentTopic].msgs.push(msg);
+            })
+            // addObserver returns deleteObserver function
+            this.deleteObserver = this?.waku?.relay?.addObserver(decoder, (msg) => msgObj.updateFunction([msg]),)
             this.observers.push({ callback: (msg) => msgObj.updateFunction([msg]), topics: [msgObj.contentTopic]})
           })
         )
@@ -68,7 +74,7 @@ export class zkChat {
 
       protected decodeAndSetArray<T extends { id: string; timestamp: Date }>(messages: Message[], setupData: WakuMessagesSetup<T>) {
         const { decodeFunction, filterFunction, name } = setupData
-        const {arr, hashMap } = this.wakuMessages[name]
+        const {msgs, hashMap } = this.wakuMessages[name]
         const decodedMessages = messages.map(decodeFunction).filter((e): e is T => !!e)
 
         decodedMessages
@@ -77,7 +83,7 @@ export class zkChat {
           if (e) {
             if (filterFunction ? filterFunction(e) : true) {
               if (!hashMap?.[e.id]) {
-                arr.unshift(e)
+                // msgs.unshift(e) -- figure out what this does
                 hashMap[e.id] = true
               }
             }
@@ -101,7 +107,7 @@ export class zkChat {
     }
   
     // decode an incoming message 
-    protected async processIncomingMessage<Decoder>(wakuMessage: Message) {
+    protected async processIncomingMessage(wakuMessage: Message) {
       // No need to attempt to decode a message if the payload is absent
       if (!wakuMessage.payload) return;
     
