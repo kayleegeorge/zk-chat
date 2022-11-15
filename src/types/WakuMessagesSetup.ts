@@ -1,7 +1,7 @@
-import { WakuMessage } from "js-waku/dist/proto/message";
+import { Message } from "js-waku/lib/interfaces";
 
 export type WakuMessagesSetup<T> = {
   name: string
-  decodeFunction: (wakuMessage: WakuMessage) => T | undefined
+  decodeFunction: (Message: Message) => T | undefined
   filterFunction?: (e: T) => boolean
 }

@@ -3,10 +3,10 @@ declare module 'protons' {
     export type ChatMessage = {
         message: string
         epoch: number
-        rln_proof: Uint8Array
+        rln_proof: Uint8Array // todo: add RLN
     }
 
-    function protons(init: string): {
+    export function protons(init: string): {
         ChatMessage: {
             encode: (message: ChatMessage) => Uint8Array,
             decode: (payload: Uint8Array | undefined) => ChatMessage
