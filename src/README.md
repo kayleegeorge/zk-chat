@@ -1,14 +1,17 @@
 ### Create instance of zkChat
 ```
-import { zkChat } from '@waku/zk-chat'
-await zkChat.create(appName, waku) // more to come
+import { ChatApp } from '@waku/zk-chat'
+await ChatApp.create(appName, waku) // more to come
 ```
 
 ### Message usage
 ```
-message Message {
-  optional string message = 1;
-  optional uint64 epoch = 2; // unix time rounded to the minute
-  optional Bytes rln_proof = 3;
+message ChatMessage {
+    bytes payload = 1;
+    string contentTopic = 2;
+    uint32 version = 3;
+    double timestamp = 4;
+    string message = 5;
+    RateLimitProof rate_limit_proof = 21;
 }
 ```

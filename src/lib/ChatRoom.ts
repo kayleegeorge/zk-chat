@@ -1,29 +1,22 @@
 import { Waku } from "js-waku/lib/interfaces"
-import { zkChat } from "./zkChat"
+import { zkChat } from "./ChatApp"
 import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { DecoderV0 } from "js-waku/lib/waku_message/version_0";
-import { proto } from "../types/ChatMessage";
 
 
 /*
 The purpose of this class is to allow two parties to create a DM
 */
-export class DirectMessage extends zkChat {
+export class ChatRoom {
     public sender: string
     public recipient: string
+    public contentTopic: string
 
     protected constructor(
-        appName: string,
-        provider: Web3Provider,
-        chainId: number,
-        providerName: string,
-        waku? : Waku
+        contentTopic: string,
     ) {
-        super(appName, chainId, [{
-            name: 'DM',
-            decodeFunction: (msg) => proto.ChatMessage.decode(msg),
-        }], waku), provider
+        this.contentTopic = contentTopic
         // this.sender = sender
         // this.recipient = recipient
     }
@@ -35,14 +28,10 @@ export class DirectMessage extends zkChat {
     ) {
         const network = await provider.getNetwork()
         const providerName = (await provider.getNetwork()).name
-        const directMessage = new DirectMessage(
-            appName,
-            provider,
-            network.chainId,
-            providerName,
-            waku
-        )
-        return directMessage
+        // //const directMessage = new ChatMessage(
+        //     this.contentTopic,
+        // )
+        // // return directMessage
     }
 
     public async parseRecipient() {

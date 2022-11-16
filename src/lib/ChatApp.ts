@@ -1,20 +1,20 @@
 import { Decoder, Encoder, Message, Waku } from "js-waku/lib/interfaces";
-import { WakuMessagesSetup } from '../types/WakuMessagesSetup'
+import { MessagesSetup } from '../types/ChatMessagesSetup'
 import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
-import { ChatMessage, proto } from "../types/ChatMessage";
 import { Web3Provider } from '@ethersproject/providers';
 import { createWaku } from "../utils/createWaku";
+import protobuf from "protobufjs";
 
 // to store the messages
-type WakuMessageStore = {
+type ChatMessageStore = {
     contentTopic: string
     hashMap: { [id: string]: boolean }
     msgs: Message[]
     updateFunction: (msg: Message[]) => void;
 }
 
-type WakuMessageStores = {
-    [messageType: string]: WakuMessageStore
+type ChatMessageStores = {
+    [messageType: string]: ChatMessageStore
 }
 
 export class zkChat {
@@ -22,21 +22,27 @@ export class zkChat {
     protected waku: Waku | undefined
     protected chainId = 0
     protected provider: Web3Provider | undefined
-    protected wakuMessages: WakuMessageStores = {}
+    protected wakuMessages: ChatMessageStores = {}
     protected observers: { callback : (msg: Message) => void; topics: string[] }[] = [] // need observers to receive
     protected deleteObserver: (() => void) | undefined 
+    protected ChatMessage: any
 
     protected constructor(
         appName: string,
         chainId: number,
-        wakuMessagesSetup: WakuMessagesSetup<any>[],
+        wakuMessagesSetup: MessagesSetup<any>[],
         waku?: Waku,
-        provider?: Web3Provider
+        provider?: Web3Provider,
       ) {
         this.appName = appName
         this.waku = waku
         this.chainId = chainId
         this.provider = provider
+        // loads chatMessage type from protobug
+        protobuf.load("message.proto").then(function(root) {
+          this.ChatMessage = root.lookupType("messagepackage.ChatMessage");
+        });
+
         wakuMessagesSetup.forEach((setupData) => {
           this.wakuMessages[setupData.name] = {
             contentTopic: `/${this.appName}/0.0.1/${setupData.name}/proto/`,
@@ -72,7 +78,7 @@ export class zkChat {
         this.wakuMessages = {};
       }
 
-      protected decodeAndSetArray<T extends { id: string; timestamp: Date }>(messages: Message[], setupData: WakuMessagesSetup<T>) {
+      protected decodeAndSetArray<T extends { id: string; timestamp: Date }>(messages: Message[], setupData: MessagesSetup<T>) {
         const { decodeFunction, filterFunction, name } = setupData
         const {msgs, hashMap } = this.wakuMessages[name]
         const decodedMessages = messages.map(decodeFunction).filter((e): e is T => !!e)
@@ -92,26 +98,30 @@ export class zkChat {
       }
 
       // send a message
-    protected async sendMessage(message: string, waku: Waku, timestamp: Date, msgStore: WakuMessageStore) {
-      const time = timestamp.getTime();
-    
+    protected async sendMessage(message: string, waku: Waku, timestamp: Date, msgStore: ChatMessageStore, contentTopic: string) {
+      const time = timestamp.getTime(); 
       // Encode to protobuf
-      const protoMsg = ChatMessage.create({
-          message: message,
-          epoch: time,
+      const msg = new this.ChatMessage({
+          payload: message,
+          timestamp: time,
+          contentTopic: contentTopic
           // insert RLN proof 
-      });
-      const payload = ChatMessage.encode(protoMsg).finish();
+      }).finish();
+      const protobufMsg = this.ChatMessage.encode(msg).finish();
       const Encoder = new EncoderV0(msgStore.contentTopic);
-      await waku.relay?.send(Encoder, { payload });
+      await waku.relay?.send(Encoder, protobufMsg);
     }
   
     // decode an incoming message 
-    protected async processIncomingMessage(wakuMessage: Message) {
+    protected async processIncomingMessage(msgBuf: Message) {
       // No need to attempt to decode a message if the payload is absent
-      if (!wakuMessage.payload) return;
-    
-      const { message, epoch, rln_proof } = proto.ChatMessage.decode(wakuMessage.payload);
-      console.log(`Message Received: ${message}, sent at ${epoch.toString()} with rln proof ${rln_proof}`);
+      if (!msgBuf.payload) return;
+      try {
+        const { payload, timestamp, contentTopic , rate_limit_proof } = this.ChatMessage.decode(msgBuf);
+        console.log(`Message Received: ${payload}, sent at ${timestamp.toString()} with content topic ${contentTopic} and rln proof ${rate_limit_proof}`);
+      } catch(e) {
+        console.log('error receiving message')
+      }
+      
     };
   }
