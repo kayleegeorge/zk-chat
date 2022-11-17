@@ -1,4 +1,4 @@
-import protobuf from "protobufjs"
+var protobuf = require("protobufjs");
 
 export const ChatMessage = new protobuf.Type("ChatMessage")
 .add(new protobuf.Field("payload", 1, "bytes"))
@@ -15,7 +15,7 @@ export const RateLimitProof = new protobuf.Type("RateLimitProof")
 .add(new protobuf.Field("share_y", 5, "bytes"))
 .add(new protobuf.Field("nullifier", 6, "bytes"))
 
-
+export default ChatMessage;
 // const root = await protobuf.load('message.proto');
 // export const ChatMessage = root.lookupType('messagepacket.ChatMessage');
 // export const RateLimitProof = root.lookupType('messagepacket.RateLimitProof');

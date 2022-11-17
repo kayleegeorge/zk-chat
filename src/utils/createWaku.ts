@@ -22,7 +22,7 @@ export async function createWaku() {
       await waitForRemotePeer(waku)
       return waku;
     } catch (e) {
-      console.log("Issue creating waku ", e)
+      console.log("Issue creating waku", e)
     }
   }
   

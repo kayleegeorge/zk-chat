@@ -5,10 +5,9 @@ import { createWaku } from "../utils/createWaku";
 import { ChatMessage } from "../types/proto";
 
 
-interface ChatMessageStore {
-    [contentTopic: string]: {
-      msgs: Message[]
-    }
+type ChatMessageStore = {
+  contentTopic: string
+  msgs: Message[]
 }
 
 export class ChatApp {
@@ -16,7 +15,7 @@ export class ChatApp {
     protected waku: Waku | undefined
     protected chainId = 0
     protected provider: Web3Provider | undefined
-    protected wakuMessages: Map<string, Message[]>
+    protected chatMessageStores: Record<string, ChatMessageStore> //Map<string, {contentTopic: string, msgs: Message[]}>
     protected observers: { callback : (msg: Message) => void; topics: string[] }[] = [] // need observers to receive
     protected deleteObserver?: (() => void)
 
@@ -31,24 +30,22 @@ export class ChatApp {
         this.chainId = chainId
         this.provider = provider
 
-        this.wakuMessages.forEach((msgs: Message[], contentTopic: string) => {
-          this.wakuMessages[contentTopic] = {
-            contentTopic: `/${this.appName}/0.0.1/chat/proto/`,
-            msgs: [],
-          }
-        })
+        for (const name in this.chatMessageStores) {
+          const chatStore: ChatMessageStore = { contentTopic: `/${this.appName}/0.0.1/${name}/proto/`, msgs: [] }
+          this.chatMessageStores[name] = chatStore
+        }
         this.setObserver()
       }
 
       protected async setObserver() {
         this.waku = await createWaku();
         await Promise.all(
-          Object.values(this.wakuMessages).map(async (msgObj) => {
+          Object.values(this.chatMessageStores).map(async (msgObj) => {
             const decoder = new DecoderV0(msgObj.contentTopic)
             if (!decoder) return;
             await this.waku?.store?.queryCallbackOnPromise([decoder], async (msgPromise) => {
               const msg = await msgPromise;
-              if (msg) this.wakuMessages[msgObj.contentTopic].msgs.push(msg);
+              if (msg) this.chatMessageStores[msgObj.contentTopic].msgs.push(msg);
             })
             this.deleteObserver = this?.waku?.relay?.addObserver(decoder, this.processIncomingMessage)
           })
@@ -58,11 +55,11 @@ export class ChatApp {
       // delete registered observers on relay
       public cleanUp() {
         if (this.deleteObserver) this.deleteObserver()
-        this.wakuMessages = new Map([])
+        this.chatMessageStores = {}
       }
 
       // send a message
-    protected async sendMessage(message: string, waku: Waku, timestamp: Date, msgStore: ChatMessageStore, contentTopic: string) {
+    public async sendMessage(message: string, waku: Waku, timestamp: Date, contentTopic: string) {
       const time = timestamp.getTime(); 
       const protoMsg = ChatMessage.create({
           payload: message,
@@ -83,11 +80,11 @@ export class ChatApp {
       if (!msgBuf.payload || ChatMessage.verify(msgBuf)) return;
       
       try {
-        const msg = ChatMessage.decode(msgBuf.payload);
-        const { payload, contentTopic, timestamp, rate_limit_proof } = ChatMessage.toObject(msg);
+        const { payload, contentTopic, timestamp, rateLimitProof }= ChatMessage.decode(msgBuf.payload);
         console.log(`Message Received: ${payload}, sent at ${timestamp.toString()} with content topic ${contentTopic} 
-          and rln proof ${rate_limit_proof}`)
-        this.wakuMessages[contentTopic].msgs.push({ payload, contentTopic, timestamp, rate_limit_proof });
+          and rln proof ${rateLimitProof}`)
+        // TODO: fix this not indexing correctly
+        // this.chatMessageStores[contentTopic].msgs.push({ payload, contentTopic, timestamp, rateLimitProof });
       } catch(e) {
         console.log('error receiving message')
       }

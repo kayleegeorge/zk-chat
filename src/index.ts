@@ -1,2 +1,2 @@
-import { zkChat } from './lib/ChatApp'
-export { zkChat }
+import { ChatApp } from './lib/ChatApp'
+export { ChatApp }

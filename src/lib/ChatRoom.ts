@@ -1,5 +1,5 @@
 import { Waku } from "js-waku/lib/interfaces"
-import { zkChat } from "./ChatApp"
+import { ChatApp } from "./ChatApp"
 import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { DecoderV0 } from "js-waku/lib/waku_message/version_0";
