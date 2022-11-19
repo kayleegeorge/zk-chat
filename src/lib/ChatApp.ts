@@ -1,8 +1,8 @@
-import { Message, ProtoMessage, Waku } from "js-waku/lib/interfaces";
-import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
-import { Web3Provider } from '@ethersproject/providers';
-import { createWaku } from "../utils/createWaku";
-import { ChatMessage } from "../types/proto";
+import { Message, Waku } from "js-waku/lib/interfaces"
+import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0"
+import { Web3Provider } from '@ethersproject/providers'
+import { createWaku } from "../utils/createWaku"
+import { ChatMessage } from "../types/proto"
 
 
 type ChatMessageStore = {
