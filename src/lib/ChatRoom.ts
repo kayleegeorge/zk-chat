@@ -1,24 +1,24 @@
 import { Waku } from "js-waku/lib/interfaces"
-import { ChatApp } from "./ChatApp"
+import { ChatApp, RegistrationType } from "./ChatApp"
 import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { DecoderV0 } from "js-waku/lib/waku_message/version_0";
 
-
+type Member = {
+    membershipId: string,
+    registrationLevel: RegistrationType // 'ENS' 'anon' 'address'
+}
 /*
-The purpose of this class is to allow two parties to create a DM
-*/
+ * create a chat room with given members
+ */
 export class ChatRoom {
-    public sender: string
-    public recipient: string
+    public chatMembers: Member[]
     public contentTopic: string
 
     protected constructor(
         contentTopic: string,
     ) {
         this.contentTopic = contentTopic
-        // this.sender = sender
-        // this.recipient = recipient
     }
 
     public static async create(
@@ -28,13 +28,9 @@ export class ChatRoom {
     ) {
         const network = await provider.getNetwork()
         const providerName = (await provider.getNetwork()).name
-        // //const directMessage = new ChatMessage(
-        //     this.contentTopic,
-        // )
-        // // return directMessage
     }
 
-    public async parseRecipient() {
+    public async handleMembership () {
         // the goal of this function is to parse into different 
         // type of recipient (address, ENS, or if don't have one --> id)
     }

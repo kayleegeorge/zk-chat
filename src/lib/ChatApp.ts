@@ -1,9 +1,25 @@
 import { Message, Waku } from "js-waku/lib/interfaces"
 import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0"
+// var DecoderV0 = require('js-waku/lib/waku_message/version_0')
+// var EncoderV0 = require('js-waku/lib/waku_message/version_0')
+//var createWaku = require('../utils/createWaku')
+//var ChatMessage = require('../types/proto')
 import { Web3Provider } from '@ethersproject/providers'
 import { createWaku } from "../utils/createWaku"
 import { ChatMessage } from "../types/proto"
+import RLNRegistry from "../../rlnjs/src/registry/RLNRegistry"
+import { ethers } from "ethers"
+import { ZkIdentity } from "@zk-kit/identity"
+import { generateMerkleProof, genExternalNullifier } from "../../rlnjs/src/utils"
+import { RLN } from "../../rlnjs/src"
+import detectEthereumProvider from '@metamask/detect-provider'
 
+
+export enum RegistrationType {
+  ENS = 'ENS',
+  address = 'address',
+  anon = 'anon'
+}
 
 type ChatMessageStore = {
   contentTopic: string
@@ -17,6 +33,7 @@ export class ChatApp {
     protected provider: Web3Provider | undefined
     protected chatMessageStores: Record<string, ChatMessageStore> //Map<string, {contentTopic: string, msgs: Message[]}>
     protected observers: { callback : (msg: Message) => void; topics: string[] }[] = [] // need observers to receive
+    protected registry: RLNRegistry
     protected deleteObserver?: (() => void)
 
     public constructor(
@@ -29,6 +46,7 @@ export class ChatApp {
         this.waku = waku
         this.chainId = chainId
         this.provider = provider
+        this.registry = new RLNRegistry() // create registry for app (or should this go in chatroom)
 
         for (const name in this.chatMessageStores) {
           const chatStore: ChatMessageStore = { contentTopic: `/${this.appName}/0.0.1/${name}/proto/`, msgs: [] }
@@ -36,6 +54,7 @@ export class ChatApp {
         }
         this.setObserver()
       }
+
 
       protected async setObserver() {
         this.waku = await createWaku();
@@ -53,7 +72,7 @@ export class ChatApp {
       }
 
       // delete registered observers on relay
-      public cleanUp() {
+      public cleanUpObservers() {
         if (this.deleteObserver) this.deleteObserver()
         this.chatMessageStores = {}
       }
@@ -89,5 +108,59 @@ export class ChatApp {
         console.log('error receiving message')
       }
       
-    };
+    }
+
+    /*
+    * usage in frontend: could have options for registration level aka
+    * button, name register, etc.
+    */
+    public async userRegistration(registrationType: RegistrationType) {
+      let identity
+      // anon: generate zk id for them 
+      if (registrationType === RegistrationType.anon) {
+        // const anonIdentity = generateAnonIdentity()
+        console.log('Anon identity registered')
+      } 
+      // address/ens: use wallet address 
+      else {
+        this.provider = await detectEthereumProvider()
+
+        if (this.provider) {
+          await this.provider.send("eth_requestAccounts", [])
+          const signer = this.provider.getSigner()
+          console.log("Ethereum detected! Account: ", await signer.getAddress())
+
+          // lookup ENS
+          await this.provider.lookupAddress(signer.getAddress())
+
+        } else {
+          console.log("Please install Ethereum provider to register with address")
+        }    
+      }
+      
+      // after identity construction, add to registry
+      if (identity) {
+        identity = new ZkIdentity()
+        const identityCommitment = identity.genIdentityCommitment()
+        this.registry.addMember(identityCommitment)
+      }
+    }
+
+    public async generateRLNProof(identity: ZkIdentity, identityCommitment: bigint, identityCommitments: any) {
+      const secretHash = identity.getSecretHash()
+
+      const leaves = Object.assign([], identityCommitments)
+      leaves.push(identityCommitment)
+
+      const signal = "signal"
+      const epoch = genExternalNullifier("test-epoch")
+      const rlnIdentifier = RLN.genIdentifier()
+
+      const merkleProof = await generateMerkleProof(15, BigInt(0), leaves, identityCommitment)
+      const witness = RLN.genWitness(secretHash, merkleProof, epoch, signal, rlnIdentifier)
+
+      // TODO UPDATE THESE
+      var wasmFilePath, finalZkeyPath;
+      const fullProof = await RLN.genProof(witness, wasmFilePath, finalZkeyPath)
+    }
   }
