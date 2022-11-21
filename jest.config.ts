@@ -8,7 +8,7 @@ const config: Config.InitialOptions = {
   },
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
   modulePaths: [
-    "<rootDir>/src/"
+    "<rootDir>/"
   ]
 };
 export default config;

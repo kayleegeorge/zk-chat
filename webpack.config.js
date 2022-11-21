@@ -17,7 +17,9 @@ module.exports = {
       "os": require.resolve("os-browserify/browser"),
       "crypto": require.resolve("crypto-browserify"),
       "assert": require.resolve("assert/"),
-      "stream": require.resolve("stream-browserify")
+      "stream": require.resolve("stream-browserify"),
+      "constants": require.resolve("constants-browserify"),
+      "path": require.resolve("path-browserify")
     }
   },
   output: {

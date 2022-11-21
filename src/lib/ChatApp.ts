@@ -28,7 +28,6 @@ type ChatMessageStore = {
 export class ChatApp {
     protected appName: string
     protected waku: Waku | undefined
-    protected chainId = 0
     protected provider: Web3Provider | undefined
     protected chatMessageStores: Record<string, ChatMessageStore> //Map<string, {contentTopic: string, msgs: Message[]}>
     protected observers: { callback : (msg: Message) => void; topics: string[] }[] = [] // need observers to receive
@@ -43,7 +42,6 @@ export class ChatApp {
       ) {
         this.appName = appName
         this.waku = waku
-        this.chainId = chainId
         this.provider = provider
         this.registry = new RLNRegistry() // create registry for app (or should this go in chatroom)
 
