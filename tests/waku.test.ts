@@ -1,17 +1,22 @@
 /* This is a test */
-import { ChatApp } from '../src/lib/ChatApp'
+import { ChatApp, RegistrationType } from '../src/lib/ChatApp'
 import { createWaku } from '../src/utils/createWaku'
 
 describe("waku", () => {
   it('should generate waku', async () => {
     const waku = await createWaku()
-    const zkchat = new ChatApp('zkChat', 0, waku)  
+    const zkChat = new ChatApp('zkChat', waku)  
     expect(typeof waku).toBe("object")
     
-    // do this
-    it('send msg', function() {
-      zkchat.sendMessage('first msg test', waku, new Date(), `/zkchat/0.0.1/dm-chat-test/proto/`)
-    }) 
+    it('register user', async () => {
+      const user = await zkChat.userRegistration(RegistrationType.anon)
+      console.log(`Registered user: ${user.identity}`)
+
+      it('send msg', function() {
+        zkChat.sendMessage(user, 'first msg test', waku, new Date(), `/zkchat/0.0.1/dm-chat-test/proto/`)
+      }) 
+    })
+    
       
   })
 
