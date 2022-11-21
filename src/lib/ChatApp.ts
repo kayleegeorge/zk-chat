@@ -12,8 +12,7 @@ import { ethers } from "ethers"
 import { ZkIdentity } from "@zk-kit/identity"
 import { generateMerkleProof, genExternalNullifier } from "../../rlnjs/src/utils"
 import { RLN } from "../../rlnjs/src"
-import detectEthereumProvider from '@metamask/detect-provider'
-
+// import detectEthereumProvider from '@metamask/detect-provider'
 
 export enum RegistrationType {
   ENS = 'ENS',
@@ -123,7 +122,7 @@ export class ChatApp {
       } 
       // address/ens: use wallet address 
       else {
-        this.provider = await detectEthereumProvider()
+        // this.provider = await detectEthereumProvider()
 
         if (this.provider) {
           await this.provider.send("eth_requestAccounts", [])
