@@ -1,10 +1,7 @@
-import { ZkIdentity } from "@zk-kit/identity"
-import { RegistrationType } from "../lib/ChatApp"
+import { MembershipKey } from "@waku/rln"
 
 export type UserID = {
-    identity: ZkIdentity
-    identityCommitment: bigint
-    registrationLevel: RegistrationType // 'ENS' 'anon' 'address'
+    memberKeys: MembershipKey
     address?: string
-    ENS?: string
+    nickname?: string
 }

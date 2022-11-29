@@ -20,7 +20,9 @@
   "dependencies": {
     "@ethersproject/providers": "^5.7.2",
     "@metamask/detect-provider": "^2.0.0",
+    "@waku/rln": "^0.0.12",
     "@zk-kit/identity": "^1.4.1",
+    "@zk-kit/protocols": "^1.11.1",
     "assert": "^2.0.0",
     "constants-browserify": "^1.0.0",
     "crypto-browserify": "^3.12.0",
