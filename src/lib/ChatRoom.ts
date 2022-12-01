@@ -27,19 +27,25 @@ export class ChatRoom {
     public rlnInstance: rln.RLNInstance
     public rlnContract: Contract
     public provider: Web3Provider 
+    private userMemkey: rln.MembershipKey
+    private userMemkeyIndex: number
 
     public constructor(
         contentTopic: string,
         roomType: RoomType,
         waku: WakuLight,
         rlnContract: Contract,
-        provider: Web3Provider
+        provider: Web3Provider,
+        userMemkey: rln.MembershipKey,
+        userMemkeyIndex: number
     ) {
         this.contentTopic = contentTopic
         this.roomType = roomType
         this.rlnContract = rlnContract
         this.waku = waku
         this.provider = provider
+        this.userMemkey = userMemkey
+        this.userMemkeyIndex = userMemkeyIndex
         this.init()
     }
 
@@ -51,12 +57,11 @@ export class ChatRoom {
         await this.waku.filter.subscribe([this.decoder], this.processIncomingMessage)
 
         // init encoder
-        const userID = await this.getUserMemberID()
         this.encoder = new rln.RLNEncoder(
             new EncoderV0(this.contentTopic),
             this.rlnInstance,
-            userID.memKeyIndex,
-            userID.memKey)
+            this.userMemkeyIndex,
+            this.userMemkey)
     }
 
     public async processIncomingMessage(msgBuf: Message) {
@@ -102,13 +107,6 @@ export class ChatRoom {
            this.chatStore[msgIndex].rlnProof = undefined 
            msgIndex += 1 
         } 
-    }
-
-    // TODO: get memKey
-    public async getUserMemberID(): Promise<UserID> {
-        const signer = this.provider.getSigner()
-        
-        return {/* retrieve memKey(idKey, idCommitment) and memKeyIndex */ }
     }
 
     /* basic util functions */

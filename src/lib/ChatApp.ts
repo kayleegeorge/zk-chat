@@ -32,11 +32,15 @@ export class ChatApp {
     protected chatRoomStore: Record<string, ChatRoom>
     protected rlnInstance: rln.RLNInstance
     protected rlnContract: Contract
+    protected userMemkey?: rln.MembershipKey
+    protected userMemkeyIndex?: number
 
     public constructor(
         appName: string,
         waku?: WakuLight,
         provider?: Web3Provider,
+        userMemkey?: rln.MembershipKey,
+        userMemkeyIndex?: number 
       ) {
         this.appName = appName
         this.waku = waku
@@ -44,10 +48,14 @@ export class ChatApp {
         
         this.chatRoomStore = {}
         this.rlnContract = new ethers.Contract(RLN_ADDRESS, RLN_ABI, this.provider)
+        if (userMemkey && userMemkeyIndex) {
+          this.userMemkey = userMemkey
+          this.userMemkeyIndex = userMemkeyIndex
+        }
         this.init()
       }
 
-      /* init rln and waku node instances */
+      /* init all dependencies */
       public async init() {
         this.waku = await createWakuNode()
         this.rlnInstance = await rln.create()
@@ -68,28 +76,34 @@ export class ChatApp {
       return memberKeys
     }
 
+    public generateRLNcredentials() {
+      if (this.userMemkey && this.userMemkeyIndex) {
+        return { 
+          "application": this.appName, 
+          "appIdentifier": this.rlnInstance.toString(), // figure out string version
+          "credentials": [{
+            "key": stringify(this.userMemkey.IDKey),
+            "commitment": stringify(this.userMemkey.IDCommitment),
+            "membershipGroups": [{
+              "chainId": GOERLI, // chainge to optimism when time
+              "contract": this.rlnContract.address,
+              "treeIndex": this.userMemkeyIndex.toString()
+            }]
+          }],
+          "version": 1 // change
+        }
+      }
+      return null
+    }
+
     /* app-level user registration: add user to chatApp */
     public async userRegistration(existingIDKey?: string, existingIDCommitment?: string, nickname?: string): Promise<UserID> {
       /* RLN credentials */
-      const memKey = (existingIDCommitment && existingIDKey) ? this.registerExistingUser(existingIDKey, existingIDCommitment) : this.registerNewUser()
-      const memKeyIndex = await this.registerUserOnRLNContract(memKey)
-      const RLNcredentials = { 
-        "application": this.appName, 
-        "appIdentifier": this.rlnInstance.toString(), // figure out string version
-        "credentials": [{
-          "key": stringify(memKey.IDKey),
-          "commitment": stringify(memKey.IDCommitment),
-          "membershipGroups": [{
-            "chainId": GOERLI, // chainge to optimism when time
-            "contract": this.rlnContract.address,
-            "treeIndex": memKeyIndex.toString()
-          }]
-        }],
-        "version": 1 // change
-      }
+      this.userMemkey = (existingIDCommitment && existingIDKey) ? this.registerExistingUser(existingIDKey, existingIDCommitment) : this.registerNewUser()
+      this.userMemkeyIndex = await this.registerUserOnRLNContract(this.userMemkey)
 
       /* user info */
-      const newUserID: UserID = { RLNcredentials: RLNcredentials, nickname }
+      const newUserID: UserID = { RLNcredentials: this.generateRLNcredentials(), nickname }
       if (this.provider) {
         await this.provider.send("eth_requestAccounts", [])
         const signer = this.provider.getSigner()
@@ -100,8 +114,8 @@ export class ChatApp {
       } else {
         console.log("Please install Ethereum provider to register with pubkey address.")
       }    
+      
       return newUserID
-      /* TODO: add RLN/user credentials to IPFS */
     }
 
     /* Allow new user registraction with rln contract for rln registry */
@@ -137,14 +151,18 @@ export class ChatApp {
     }
 
     /* create chat room */
-    public createChatRoom(name: string, roomType: RoomType) {
+    public createChatRoom(name: string, roomType: RoomType, userMemkey: rln.MembershipKey, userMemkeyIndex: number) {
       const contentTopic = `/${this.appName}/0.0.1/${roomType}-${name}/proto/`
       if (contentTopic in this.chatRoomStore) {
         return 'Error: Please choose different chat name.'
       }
-      const chatroom = new ChatRoom(contentTopic, roomType, this.waku, this.rlnContract, this.provider)
-      this.chatRoomStore[contentTopic] = chatroom
-      return chatroom
+      if (userMemkey && userMemkeyIndex) {
+        const chatroom = new ChatRoom(contentTopic, roomType, this.waku, this.rlnContract, this.provider, this.userMemkey, this.userMemkeyIndex)
+        this.chatRoomStore[contentTopic] = chatroom
+        return chatroom
+      } else {
+        console.log("You must register as a user before creating a chat room.")
+      }
     }
 
     /* fetch all chat room messages for a given chatroom */
