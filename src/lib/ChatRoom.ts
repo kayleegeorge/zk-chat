@@ -7,7 +7,7 @@ import { RoomType } from "../types/ChatRoomOptions";
 import * as rln from "@waku/rln"
 import { ProtoChatMessage } from "../types/ChatMessage";
 
-export type MessageStore = {
+type MessageStore = {
     messageText: string;
     epoch: bigint;
     rlnProof: RateLimitProof | undefined;

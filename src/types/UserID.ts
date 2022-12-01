@@ -1,8 +1,24 @@
-import { MembershipKey } from "@waku/rln"
-
 export type UserID = {
-    memKey: MembershipKey
-    memKeyIndex?: number
+    RLNcredentials: object,
     address?: string
     nickname?: string
 }
+
+/*
+RLNCredentials JOSN format:
+
+{
+    "application": string,
+    "appIdentifier": string,
+    "credentials": [{
+        "key": string,
+        "commitment": string,
+        "membershipGroups" : [{
+            "chainId": number,
+            "contract": string,
+            "treeIndex": string
+        }]
+    }],
+    "version": number
+}
+*/

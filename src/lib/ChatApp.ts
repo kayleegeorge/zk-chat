@@ -1,5 +1,4 @@
-import { Message, Waku, WakuLight } from "js-waku/lib/interfaces"
-import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
+import { WakuLight } from "js-waku/lib/interfaces"
 import { Web3Provider } from '@ethersproject/providers'
 import { createWakuNode } from "../utils/createWaku"
 import { ChatRoom } from "./ChatRoom"
@@ -7,9 +6,10 @@ import detectEthereumProvider from '@metamask/detect-provider'
 import { UserID } from "../types/UserID"
 import { RoomType } from "../types/ChatRoomOptions"
 import * as rln from "@waku/rln"
-import { checkChain } from "../utils/checkChain"
+import { checkChain, GOERLI } from "../utils/checkChain"
 import { MembershipKey } from "@waku/rln"
 import { Contract, ethers } from "ethers"
+import { arrayify, stringify } from "../utils/formatting"
 
 /* RLN contract constants */
 const RLN_ABI = ''
@@ -56,16 +56,10 @@ export class ChatApp {
 
     /* RLN-level existing memkey generation */
     public registerExistingUser(existingIDKey: string, existingIDCommitment: string) {
-      const memberKeys = new MembershipKey(this.convertKey(existingIDKey), this.convertKey(existingIDCommitment))
+      const memberKeys = new MembershipKey(arrayify(existingIDKey), arrayify(existingIDCommitment))
       this.rlnInstance.insertMember(memberKeys.IDCommitment)
       return memberKeys
     }
-
-    /* helper function to convert to proper ethers key */
-    public convertKey(key: string) {
-      return ethers.utils.zeroPad(ethers.utils.arrayify(key), 32)
-    }
-
 
     /* RLN-level new user memkey generation */
     public registerNewUser() {
@@ -76,10 +70,26 @@ export class ChatApp {
 
     /* app-level user registration: add user to chatApp */
     public async userRegistration(existingIDKey?: string, existingIDCommitment?: string, nickname?: string): Promise<UserID> {
+      /* RLN credentials */
       const memKey = (existingIDCommitment && existingIDKey) ? this.registerExistingUser(existingIDKey, existingIDCommitment) : this.registerNewUser()
-      const newUserID: UserID = { memKey, nickname }
-      newUserID.memKeyIndex = await this.registerUserOnRLNContract(memKey)
+      const memKeyIndex = await this.registerUserOnRLNContract(memKey)
+      const RLNcredentials = { 
+        "application": this.appName, 
+        "appIdentifier": this.rlnInstance.toString(), // figure out string version
+        "credentials": [{
+          "key": stringify(memKey.IDKey),
+          "commitment": stringify(memKey.IDCommitment),
+          "membershipGroups": [{
+            "chainId": GOERLI, // chainge to optimism when time
+            "contract": this.rlnContract.address,
+            "treeIndex": memKeyIndex.toString()
+          }]
+        }],
+        "version": 1 // change
+      }
 
+      /* user info */
+      const newUserID: UserID = { RLNcredentials: RLNcredentials, nickname }
       if (this.provider) {
         await this.provider.send("eth_requestAccounts", [])
         const signer = this.provider.getSigner()
@@ -91,6 +101,7 @@ export class ChatApp {
         console.log("Please install Ethereum provider to register with pubkey address.")
       }    
       return newUserID
+      /* TODO: add RLN/user credentials to IPFS */
     }
 
     /* Allow new user registraction with rln contract for rln registry */
