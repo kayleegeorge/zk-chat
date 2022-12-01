@@ -1,7 +1,8 @@
 import { MembershipKey } from "@waku/rln"
 
 export type UserID = {
-    memberKeys: MembershipKey
+    memKey: MembershipKey
+    memKeyIndex?: number
     address?: string
     nickname?: string
 }

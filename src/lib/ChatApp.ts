@@ -7,14 +7,23 @@ import detectEthereumProvider from '@metamask/detect-provider'
 import { UserID } from "../types/UserID"
 import { RoomType } from "../types/ChatRoomOptions"
 import * as rln from "@waku/rln"
+import { checkChain } from "../utils/checkChain"
+import { MembershipKey } from "@waku/rln"
+import { Contract, ethers } from "ethers"
 
-// future
-// export enum RegistrationType {
-//   ENS = 'ENS',
-//   address = 'address',
-//   anon = 'anon',
-//   interep = 'interep'
-// }
+/* RLN contract constants */
+const RLN_ABI = ''
+const RLN_ADDRESS = ''
+
+/* types for reference:
+* -----
+* idCommitment: 'pubkey'
+* idKey: 'secretKey'
+* membershipKey: (idKey, idCommitment)
+* membershipId = membershipKeyIndex: index of MembershipKey.idCommitment in rlnContract
+* -----
+* rlnContract(membershipKey.idCommitment) --> emits (membershipKey.idCommitment, membershipKeyIndex)
+*/
 
 export class ChatApp {
     protected appName: string
@@ -22,6 +31,7 @@ export class ChatApp {
     protected provider: Web3Provider | undefined
     protected chatRoomStore: Record<string, ChatRoom>
     protected rlnInstance: rln.RLNInstance
+    protected rlnContract: Contract
 
     public constructor(
         appName: string,
@@ -33,35 +43,86 @@ export class ChatApp {
         this.provider = provider
         
         this.chatRoomStore = {}
+        this.rlnContract = new ethers.Contract(RLN_ADDRESS, RLN_ABI, this.provider)
         this.init()
-
       }
 
+      /* init rln and waku node instances */
       public async init() {
-        this.waku = await createWakuNode();
+        this.waku = await createWakuNode()
         this.rlnInstance = await rln.create()
+        this.provider = await detectEthereumProvider()
       }
 
-    /*
-    * user registration: add user to chatApp & RLN registry
-    */
-    public async userRegistration(memKeys?: rln.MembershipKey): Promise<UserID> {
-      const memberKeys = memKeys ?? this.rlnInstance.generateMembershipKey() // IDKey, IDcommitment
+    /* RLN-level existing memkey generation */
+    public registerExistingUser(existingIDKey: string, existingIDCommitment: string) {
+      const memberKeys = new MembershipKey(this.convertKey(existingIDKey), this.convertKey(existingIDCommitment))
       this.rlnInstance.insertMember(memberKeys.IDCommitment)
-      const newUserID: UserID = { memberKeys }
+      return memberKeys
+    }
 
-      /* get eth pubkey wallet address */
-      this.provider = await detectEthereumProvider()
+    /* helper function to convert to proper ethers key */
+    public convertKey(key: string) {
+      return ethers.utils.zeroPad(ethers.utils.arrayify(key), 32)
+    }
+
+
+    /* RLN-level new user memkey generation */
+    public registerNewUser() {
+      const memberKeys = this.rlnInstance.generateMembershipKey() // IDKey, IDcommitment
+      this.rlnInstance.insertMember(memberKeys.IDCommitment)
+      return memberKeys
+    }
+
+    /* app-level user registration: add user to chatApp */
+    public async userRegistration(existingIDKey?: string, existingIDCommitment?: string, nickname?: string): Promise<UserID> {
+      const memKey = (existingIDCommitment && existingIDKey) ? this.registerExistingUser(existingIDKey, existingIDCommitment) : this.registerNewUser()
+      const newUserID: UserID = { memKey, nickname }
+      newUserID.memKeyIndex = await this.registerUserOnRLNContract(memKey)
 
       if (this.provider) {
         await this.provider.send("eth_requestAccounts", [])
         const signer = this.provider.getSigner()
         newUserID.address = await signer.getAddress()
+        const network = await this.provider.getNetwork()
+        checkChain(network)
         console.log("Ethereum detected! Account: ", newUserID.address)
       } else {
-        console.log("Please install Ethereum provider to register with address")
+        console.log("Please install Ethereum provider to register with pubkey address.")
       }    
       return newUserID
+    }
+
+    /* Allow new user registraction with rln contract for rln registry */
+    public async registerUserOnRLNContract(memkey: MembershipKey): Promise<number> {
+      const price = await this.rlnContract.MEMBERSHIP_DEPOSIT()
+      const signer = this.provider.getSigner()
+
+      const rlnContractWithSigner = this.rlnContract.connect(signer)
+      const txResponse = await rlnContractWithSigner.register(memkey, {value: price})
+      console.log("Transaction broadcasted: ", txResponse)
+
+      const txReceipt = await txResponse.wait()
+      console.log("Transaction receipt", txReceipt)
+
+      // return membershipID / membershipkeyIndex
+      return txReceipt.events[0].args.index.toNumber()
+    }
+
+    /* construct RLN member tree locally */
+    public async constructRLNMemberTree() {
+      const memRegEvent = this.rlnContract.filters.MemberRegistered()
+
+      // populate merkle tree with existing users
+      const registeredMembers = await this.rlnContract.queryFilter(memRegEvent)
+      registeredMembers.forEach(event => {
+          this.registerExistingUser(event.args.memkey, event.args.memkeyIndex)
+      })
+
+      // listen to new members added to rln contract
+      this.rlnContract.on(memRegEvent, (event) => {
+        this.registerExistingUser(event.args.memkey, event.args.memkeyIndex)
+      })
     }
 
     /* create chat room */
@@ -70,13 +131,13 @@ export class ChatApp {
       if (contentTopic in this.chatRoomStore) {
         return 'Error: Please choose different chat name.'
       }
-      const chatroom = new ChatRoom(contentTopic, roomType, this.waku)
+      const chatroom = new ChatRoom(contentTopic, roomType, this.waku, this.rlnContract, this.provider)
       this.chatRoomStore[contentTopic] = chatroom
       return chatroom
     }
 
+    /* fetch all chat room messages for a given chatroom */
     public async fetchChatRoomMsgs(name: string) {
-      const msgs = this.chatRoomStore[name].getMessages()
-      return msgs
+      return this.chatRoomStore[name].getAllMessages()
     }
   }
