@@ -2,7 +2,6 @@ import { Message, RateLimitProof, WakuLight, WakuPrivacy } from "js-waku/lib/int
 import { Contract, ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
-import { UserID } from "../types/UserID";
 import { RoomType } from "../types/ChatRoomOptions";
 import * as rln from "@waku/rln"
 import { ProtoChatMessage } from "../types/ChatMessage";
@@ -17,7 +16,6 @@ type MessageStore = {
  * Create a chat room
  */
 export class ChatRoom {
-    public chatMembers: UserID[]
     public roomType: RoomType
     public contentTopic: string
     public decoder: rln.RLNDecoder<Message>
@@ -83,18 +81,18 @@ export class ChatRoom {
 
     /* send a message */
     public async sendMessage(user: UserID, message: string) {
-    const time = new Date()
+        const time = new Date()
 
-    // encode to protobuf
-    const protoMsg = ProtoChatMessage.create({
-        messageText: message,
-        timestamp: Math.floor(time.valueOf() / 1000),
-        nickname: user.nickname,
-    });
-    const payload = ProtoChatMessage.encode(protoMsg).finish()
-    await this.waku.lightPush.push(this.encoder, { payload, timestamp: time }).then(() => {
-        console.log(`Sent Encoded Message: ${protoMsg}`)
-    })
+        // encode to protobuf
+        const protoMsg = ProtoChatMessage.create({
+            messageText: message,
+            timestamp: Math.floor(time.valueOf() / 1000),
+            nickname: user.nickname,
+        });
+        const payload = ProtoChatMessage.encode(protoMsg).finish()
+        await this.waku.lightPush.push(this.encoder, { payload, timestamp: time }).then(() => {
+            console.log(`Sent Encoded Message: ${protoMsg}`)
+        })
     }
 
     /* clean up message store rln proofs after n epochs */

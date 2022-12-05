@@ -1,9 +1,3 @@
-export type UserID = {
-    RLNcredentials: object,
-    address?: string
-    nickname?: string
-}
-
 /*
 RLNCredentials JOSN format:
 

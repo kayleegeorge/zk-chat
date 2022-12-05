@@ -3,7 +3,6 @@ import { Web3Provider } from '@ethersproject/providers'
 import { createWakuNode } from "../utils/createWaku"
 import { ChatRoom } from "./ChatRoom"
 import detectEthereumProvider from '@metamask/detect-provider'
-import { UserID } from "../types/UserID"
 import { RoomType } from "../types/ChatRoomOptions"
 import * as rln from "@waku/rln"
 import { checkChain, GOERLI } from "../utils/checkChain"
@@ -103,7 +102,7 @@ export class ChatApp {
       this.userMemkeyIndex = await this.registerUserOnRLNContract(this.userMemkey)
 
       /* user info */
-      const newUserID: UserID = { RLNcredentials: this.generateRLNcredentials(), nickname }
+      // const newUserID = RLNcredentials: this.generateRLNcredentials() 
       if (this.provider) {
         await this.provider.send("eth_requestAccounts", [])
         const signer = this.provider.getSigner()
@@ -115,7 +114,7 @@ export class ChatApp {
         console.log("Please install Ethereum provider to register with pubkey address.")
       }    
       
-      return newUserID
+      return this.generateRLNcredentials()
     }
 
     /* Allow new user registraction with rln contract for rln registry */
