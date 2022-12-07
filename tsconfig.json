@@ -6,8 +6,11 @@
       "target": "es2020",
       "jsx": "react",
       "allowJs": true,
+      "strict": true,
       "moduleResolution": "node",
       "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true
-   }
+      "allowSyntheticDefaultImports": true,
+   },
+   "include": ["./rln/scripts", "./rln/test"],
+   "files": ["hardhat.config.ts"]
   }

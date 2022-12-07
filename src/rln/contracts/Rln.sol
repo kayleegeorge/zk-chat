@@ -52,12 +52,10 @@ contract RLN {
 
 	function withdrawBatch(
 		uint256[] calldata secrets,
-		uint256[] calldata memPubkeyIndexes,
 		address payable[] calldata receivers
 	) external {
 		uint256 batchSize = secrets.length;
 		require(batchSize != 0, "RLN, withdrawBatch: batch size zero");
-		require(batchSize == memPubkeyIndexes.length, "RLN, withdrawBatch: batch size mismatch memPubkey indexes");
 		require(batchSize == receivers.length, "RLN, withdrawBatch: batch size mismatch receivers");
 		for (uint256 i = 0; i < batchSize; i++) {
 			_withdraw(secrets[i], receivers[i]);

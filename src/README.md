@@ -15,3 +15,21 @@ message ChatMessage {
     RateLimitProof rate_limit_proof = 21;
 }
 ```
+
+### RLNCredentials JSON format:
+```
+{
+    "application": string,
+    "appIdentifier": string,
+    "credentials": [{
+        "key": string,
+        "commitment": string,
+        "membershipGroups" : [{
+            "chainId": number,
+            "contract": string,
+            "treeIndex": string
+        }]
+    }],
+    "version": number
+}
+```

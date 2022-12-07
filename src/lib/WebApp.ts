@@ -13,40 +13,35 @@ class BrowserMessaging {
         this.url = url
     }
 
+    disconect() {
+        this.connection.close()
+    }
+
     public async connect() {
         try {
+            // we own zkchat.org
             const dataChannelParams = {ordered: true, "iceServers": [{ "url": this.url }] }
             this.connection = new RTCPeerConnection()
             console.log("RTCPeerConnection created")
 
-            this.connection.addEventListener('icecandidate', async e => {
-                console.log('local connection ICE candidate: ', e.candidate)
-                // await this.remoteConnection.addIceCandidate(e.candidate)
-            })
-
             this.connection.onicecandidate = ({ candidate }) => {
-                let curConnectedTo = connectedRef.current
-                if (candidate && !curConnectedTo) {
-                    this.sendMessage({
-                        name: curConnectedTo,
-                        type: "candidate",
-                        candidate
-                    })
-                }
+                this.connection.addIceCandidate(candidate).then(
+                    () => console.log("Added Ice Candidate")
+                ).catch(() => console.log('Failed to add ice candidate'))
             }
 
             this.connection.ondatachannel = event => {
                 let receiveChannel = event.channel
                 receiveChannel.onopen = () => {
                     console.log('channel open')
-                    receiveChannel.onmessage = this.onDataChannelMessage
+                    // receiveChannel.onmessage = this.onDataChannelMessage
                     // update channel(receivechannel)
-                    this.connected= true
+                    this.connected = true
                 }
             }
     
             this.dataChannel = this.connection.createDataChannel('chat-channel', dataChannelParams)
-            
+
             
             this.dataChannel.binaryType = 'arraybuffer'
             this.dataChannel.addEventListener('open', () => {
@@ -75,7 +70,7 @@ class BrowserMessaging {
     }
     
     /* send message */
-    public async sendMessage(msg: JSON) {
+    public async sendMessage(msg: string) {
         if (msg == '') {
             console.log('Cannot send empty message')
             return

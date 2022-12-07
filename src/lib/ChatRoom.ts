@@ -27,6 +27,7 @@ export class ChatRoom {
     public provider: Web3Provider 
     private userMemkey: rln.MembershipKey
     private userMemkeyIndex: number
+    private chatMembers: string[]
 
     public constructor(
         contentTopic: string,
@@ -35,7 +36,8 @@ export class ChatRoom {
         rlnContract: Contract,
         provider: Web3Provider,
         userMemkey: rln.MembershipKey,
-        userMemkeyIndex: number
+        userMemkeyIndex: number,
+        chatMembers: string[]
     ) {
         this.contentTopic = contentTopic
         this.roomType = roomType
@@ -44,6 +46,7 @@ export class ChatRoom {
         this.provider = provider
         this.userMemkey = userMemkey
         this.userMemkeyIndex = userMemkeyIndex
+        this.chatMembers = chatMembers
         this.init()
     }
 
@@ -61,6 +64,8 @@ export class ChatRoom {
             this.userMemkeyIndex,
             this.userMemkey)
     }
+
+    // encryption: create unique userID by hashing together rlncred + chatroom
 
     public async processIncomingMessage(msgBuf: Message) {
         if (!msgBuf.payload || ProtoChatMessage.verify(msgBuf)) return;
@@ -80,14 +85,14 @@ export class ChatRoom {
       }
 
     /* send a message */
-    public async sendMessage(user: UserID, message: string) {
+    public async sendMessage(nickname: string, message: string) {
         const time = new Date()
 
         // encode to protobuf
         const protoMsg = ProtoChatMessage.create({
             messageText: message,
             timestamp: Math.floor(time.valueOf() / 1000),
-            nickname: user.nickname,
+            nickname: nickname,
         });
         const payload = ProtoChatMessage.encode(protoMsg).finish()
         await this.waku.lightPush.push(this.encoder, { payload, timestamp: time }).then(() => {
@@ -114,7 +119,7 @@ export class ChatRoom {
     public getLastMessage() {
         return this.chatStore[-1]
     }
-    public async addChatMember(user: UserID) {
+    public async addChatMember(user: string) {
         if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
             console.error('Cannot add more than 5 members to a private group')
         } else {
