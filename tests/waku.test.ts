@@ -1,22 +1,19 @@
 /* This is a test */
 import { ChatApp } from '../src/lib/ChatApp'
-import { createWakuNode } from '../src/utils/createWakuNode'
+import Setup from '../src/utils/setup'
 
 describe("waku", () => {
   it('should generate waku', async () => {
-    const waku = await createWakuNode()
-    const zkChat = new ChatApp('zkChat', waku)  
-    expect(typeof waku).toBe("object")
+    const { waku, provider, rlnInstance } = await Setup()
+    console.log(`Setup: rlnInstance = ${rlnInstance}`)
+    const zkChat = new ChatApp('zkChat', waku, provider, rlnInstance)  
     
     it('register user', async () => {
       const rlnCreds = await zkChat.userRegistration()
       console.log(`Registered user: ${rlnCreds.credentials[0].commitment}`)
 
-      // it('send msg', function() {
-      //   zkChat.sendMessage(user, 'first msg test', waku, new Date(), `/zkchat/0.0.1/dm-chat-test/proto/`)
-      // }) 
+      const chatroom = zkChat.createChatRoom('test-room', rlnCreds.credentials[0].key, rlnCreds.credentials[0].commitment)
     })
-    
       
   })
 

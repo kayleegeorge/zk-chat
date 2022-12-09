@@ -1,6 +1,4 @@
-import type { Config } from '@jest/types';
-
-const config: Config.InitialOptions = {
+module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
@@ -10,5 +8,4 @@ const config: Config.InitialOptions = {
   modulePaths: [
     "<rootDir>/"
   ]
-};
-export default config;
+}

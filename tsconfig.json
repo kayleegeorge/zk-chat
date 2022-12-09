@@ -9,8 +9,8 @@
       "strict": true,
       "moduleResolution": "node",
       "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true,
+      "allowSyntheticDefaultImports": true
    },
-   "include": ["./rln/scripts", "./rln/test"],
-   "files": ["hardhat.config.ts"]
+   "include": [".src/rln/scripts", ".src/rln/test"],
+   "files": ["./hardhat.config.ts", "./jest.config.ts"]
   }

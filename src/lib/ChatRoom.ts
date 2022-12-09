@@ -1,10 +1,10 @@
 import { Message, RateLimitProof, WakuLight, WakuPrivacy } from "js-waku/lib/interfaces"
-import { Contract, ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
 import { RoomType } from "../types/ChatRoomOptions";
 import * as rln from "@waku/rln"
 import { ProtoChatMessage } from "../types/ChatMessage";
+import { UnsubscribeFunction } from "js-waku/lib/waku_filter";
 
 type MessageStore = {
     messageText: string;
@@ -23,46 +23,46 @@ export class ChatRoom {
     public chatStore: MessageStore[]
     public waku: WakuLight
     public rlnInstance: rln.RLNInstance
-    public rlnContract: Contract
     public provider: Web3Provider 
-    private userMemkey: rln.MembershipKey
+    private userMemkey: rln.MembershipKey    
     private userMemkeyIndex: number
     private chatMembers: string[]
+    public unsubscribeWaku?: UnsubscribeFunction 
 
     public constructor(
         contentTopic: string,
         roomType: RoomType,
         waku: WakuLight,
-        rlnContract: Contract,
         provider: Web3Provider,
         userMemkey: rln.MembershipKey,
         userMemkeyIndex: number,
-        chatMembers: string[]
+        chatMembers: string[],
+        rlnInstance: rln.RLNInstance,
     ) {
         this.contentTopic = contentTopic
         this.roomType = roomType
-        this.rlnContract = rlnContract
         this.waku = waku
         this.provider = provider
+        this.rlnInstance = rlnInstance
         this.userMemkey = userMemkey
         this.userMemkeyIndex = userMemkeyIndex
         this.chatMembers = chatMembers
-        this.init()
-    }
-
-    public async init() {
-        // init decoder
+        this.chatStore = []
+        
+        /* init decoder and encoder */
         this.decoder = new rln.RLNDecoder(
             this.rlnInstance, 
             new DecoderV0(this.contentTopic))
-        await this.waku.filter.subscribe([this.decoder], this.processIncomingMessage)
-
-        // init encoder
         this.encoder = new rln.RLNEncoder(
             new EncoderV0(this.contentTopic),
             this.rlnInstance,
             this.userMemkeyIndex,
             this.userMemkey)
+        this.subscribeWaku()
+    }
+
+    public async subscribeWaku() {        
+        this.unsubscribeWaku = await this.waku.filter.subscribe([this.decoder], this.processIncomingMessage)
     }
 
     // encryption: create unique userID by hashing together rlncred + chatroom

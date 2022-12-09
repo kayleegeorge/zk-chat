@@ -1,9 +1,10 @@
-import { assert, expect } from "chai"
 const { ethers } = require("hardhat")
+const { assert, expect } = require("chai")
+require("@nomicfoundation/hardhat-chai-matchers")
 
 describe("Rln", function () {
   it("Deploying", async function () {
-    const PoseidonHasher = await this.env.ethers.getContractFactory("PoseidonHasher");
+    const PoseidonHasher = await ethers.getContractFactory("PoseidonHasher");
     const poseidonHasher = await PoseidonHasher.deploy();
   
     await poseidonHasher.deployed();
@@ -26,7 +27,7 @@ describe("Rln", function () {
     const res_register = await rln.register(id_commitment, {value: price});
     const txRegisterReceipt = await res_register.wait();
 
-    const reg_pubkey =  txRegisterReceipt.events[0].args.pubkey;
+    const reg_pubkey =  txRegisterReceipt.events[0].args.memPubkey;
     const reg_tree_index =  txRegisterReceipt.events[0].args.index;
 
     // We ensure the registered id_commitment is the one we passed
@@ -38,7 +39,7 @@ describe("Rln", function () {
     
     const txWithdrawReceipt = await res_withdraw.wait();
 
-    const wit_pubkey =  txWithdrawReceipt.events[0].args.pubkey;
+    const wit_pubkey =  txWithdrawReceipt.events[0].args.memPubkey;
 
     // We ensure the registered id_commitment is the one we passed and that the index is the same
     assert(wit_pubkey.toHexString() === id_commitment, "withdraw commitment doesn't match registered commitment");
@@ -67,9 +68,7 @@ describe("Rln", function () {
     const id_commitment = "0x0c3ac305f6a4fe9bfeb3eba978bc876e2a99208b8b56c80160cfb54ba8f02368"
 
     await rln.register(id_commitment, {value: price});
-
-    // TODO fix this
-    // expect(rln.register(id_commitment, {value: price})).to.be.revertedWith("RLN, register: pubkey already registered");
+    expect(rln.register(id_commitment, {value: price})).to.be.revertedWith("RLN, register: pubkey already registered");
     
   });
 });
