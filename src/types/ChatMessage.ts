@@ -48,10 +48,10 @@ export class ChatMessage {
   }
 
   get alias(): string {
-    return this.proto.alias
+    return this.proto.alias ?? ""
   }
 
   get message(): string {
-    return this.proto.message ?? ""
+    return this.proto.message
   }
 }
