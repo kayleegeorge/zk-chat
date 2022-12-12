@@ -31,7 +31,7 @@ export class Message {
 
   static fromUtf8String(message: string, rln_proof: Uint8Array, alias?: string): Message {
     const date = new Date()
-    return new Message(ChatMessage.fromUtf8String(message, dateToEpoch(date), rln_proof, alias), date)
+    return new Message(ChatMessage.fromUtf8String(message, dateToEpoch(date), alias), date)
   }
 
   get message() {
@@ -42,10 +42,6 @@ export class Message {
     return this.chatMessage.epoch;
   }
 
-  get rln_proof() {
-    return this.chatMessage.rln_proof
-  }
-  
   get alias() {
     return this.chatMessage.alias
   }

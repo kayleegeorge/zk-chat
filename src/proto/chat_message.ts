@@ -40,15 +40,6 @@ export namespace ChatMessage {
               'Protocol error: required field "epoch" was not found in object'
             );
           }
-
-          // if (obj.message != null) {
-          //   writer.uint32(26)
-          //   writer.bytes(obj.rln_proof)
-          // } else {
-          //   throw new Error(
-          //     'Protocol error: required field "message" was not found in object'
-          //   );
-          // }
           if (obj.alias != null) {
             writer.uint32(34)
             writer.string(obj.alias)
@@ -62,7 +53,6 @@ export namespace ChatMessage {
           const obj: any = {
             message: "",
             epoch: 0,
-            // rln_proof: new Uint8Array(0),
             alias: ""
           };
 
@@ -79,9 +69,6 @@ export namespace ChatMessage {
                 obj.epoch = reader.uint64();
                 break;
               case 3:
-                obj.rln_proof = reader.bytes();
-                break;
-              case 4:
                 obj.alias = reader.string()
                 break
               default:
@@ -96,11 +83,11 @@ export namespace ChatMessage {
             );
           }
 
-          if (obj.rln_proof == null) {
-            throw new Error(
-              'Protocol error: value for required field "rln_proof" was not found in protobuf'
-            );
-          }
+          // if (obj.rln_proof == null) {
+          //   throw new Error(
+          //     'Protocol error: value for required field "rln_proof" was not found in protobuf'
+          //   );
+          // }
 
           if (obj.message == null) {
             throw new Error(

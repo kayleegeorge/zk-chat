@@ -54,8 +54,4 @@ export class ChatMessage {
   get message(): string {
     return this.proto.message ?? ""
   }
-
-  get rln_proof(): Uint8Array {
-    return this.proto.rln_proof
-  }
 }

@@ -11,6 +11,15 @@ type MessageStore = {
     message: string;
     epoch: bigint;
     rlnProof: RateLimitProof | undefined;
+    proofState: ProofState
+}
+
+// todo: move this
+enum ProofState {
+    none = 'none',
+    processing = 'processing',
+    verified = 'verified',
+    invalid = 'invalid'
 }
 
 
@@ -73,28 +82,37 @@ export class ChatRoom {
         if (!msgBuf.payload) return
         
         try {
-            const msg = ChatMessage.decode(msgBuf.payload)
-            console.log(msg)
+            const { message, epoch, alias } = ChatMessage.decode(msgBuf.payload)
+            const timestamp = new Date().setTime(Number(epoch) * 1000)
+
+            let proofState, verifyNoRoots, verify
             if (!msgBuf.rateLimitProof) {
-                console.log('No Proof')
-            } 
-            // todo: handle proof
-            // console.log(`Message Received: ${message}, sent at ${timestamp.toString()}`)
-            //this.chatStore.push({ message, epoch: timestamp, rlnProof: msgBuf.rateLimitProof })
+                console.log('No Proof with Message')
+                proofState = ProofState.none
+            } else {
+                console.log(`Proof attached: ${msgBuf.rateLimitProof}`)
+                // TODO: check if the second arg needs to have contentTopic
+                verifyNoRoots = this.rlnInstance.verifyRLNProof(msgBuf.rateLimitProof, msgBuf.payload)
+                verify = this.rlnInstance.verifyWithRoots(msgBuf.rateLimitProof, msgBuf.payload)
+                proofState = ProofState.processing
+            }
+            
+            // todo: handle proof: change proof state based on verify
+            console.log(`Message Received from ${alias}: ${message}, sent at ${timestamp}`)
+            this.chatStore.push({ message, epoch, rlnProof: msgBuf.rateLimitProof, proofState })
         } catch(e) {
             console.log('Error receiving message')
         }
       }
 
     /* send a message */
-    public async sendMessage(message: string, alias: string, rln_proof: ) {
+    public async sendMessage(message: string, alias: string) {
         const date = new Date()
 
         // encode to protobuf
         const protoMsg = new ChatMessage({
             message: message,
             epoch: dateToEpoch(date),
-            rln_proof: rln_proof,
             alias: alias,
         });
         const payload = protoMsg.encode()
