@@ -1,6 +1,6 @@
 /* This is a test */
-import { ChatApp } from '../src/lib/ChatApp'
-import Setup from '../src/utils/setup'
+import { ChatApp } from '../lib/ChatApp'
+import Setup from '../utils/setup'
 
 describe("waku", () => {
   it('should generate waku', async () => {
@@ -12,7 +12,7 @@ describe("waku", () => {
       const rlnCreds = await zkChat.userRegistration()
       console.log(`Registered user: ${rlnCreds.credentials[0].commitment}`)
 
-      const chatroom = zkChat.createChatRoom('test-room', rlnCreds.credentials[0].key, rlnCreds.credentials[0].commitment)
+      // const chatroom = zkChat.createChatRoom('test-room', rlnCreds.credentials[0].key, rlnCreds.credentials[0].commitment)
     })
       
   })

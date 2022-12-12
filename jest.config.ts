@@ -1,11 +1,22 @@
+const path = require("path")
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  rootDir: ".",
   transform: {
-    "^.+\\.ts?$": "ts-jest"
+    "^.+\\.ts?$": "ts-jest" 
   },
-  transformIgnorePatterns: ['<rootDir>/node_modules/'],
+  transformIgnorePatterns: ['^.+\\.js$'],
   modulePaths: [
-    "<rootDir>/"
-  ]
-}
+    "<rootDir>/src", "<rootDir>/node_modules" 
+  ],
+  moduleDirectories: [
+    "src", "node_modules"
+  ],
+  verbose: true,
+  moduleNameMapper: {
+    "/src/(.*)": "<rootDir>/src/$1",
+  },
+  testPathIgnorePatterns: ["<rootDir>/node_modules/"]
+}  

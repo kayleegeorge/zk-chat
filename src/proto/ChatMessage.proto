@@ -1,0 +1,8 @@
+syntax = "proto3"
+
+message ChatMessage {
+   string message = 1;
+   uint64 epoch = 2; // unix time rounded to the minute
+   Bytes rln_proof = 3;
+   string alias = 4;
+ }

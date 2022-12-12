@@ -1,2 +1,4 @@
 import { ChatApp } from './lib/ChatApp'
-export { ChatApp }
+import { ChatRoom } from './lib/ChatRoom'
+export { ChatApp, ChatRoom }
+

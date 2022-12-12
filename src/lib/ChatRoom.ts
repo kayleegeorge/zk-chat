@@ -1,16 +1,18 @@
-import { Message, RateLimitProof, WakuLight, WakuPrivacy } from "js-waku/lib/interfaces"
-import { Web3Provider } from "@ethersproject/providers";
-import { DecoderV0, EncoderV0 } from "js-waku/lib/waku_message/version_0";
-import { RoomType } from "../types/ChatRoomOptions";
-import * as rln from "@waku/rln"
-import { ProtoChatMessage } from "../types/ChatMessage";
-import { UnsubscribeFunction } from "js-waku/lib/waku_filter";
+import { Message, RateLimitProof, WakuLight } from "js-waku/lib/interfaces"
+import { Web3Provider } from "@ethersproject/providers"
+import { DecoderV0, EncoderV0 } from "../types/Coders"
+import { RoomType } from "../types/ChatRoomOptions"
+import { UnsubscribeFunction } from "js-waku/lib/waku_filter"
+import { MembershipKey, RLNDecoder, RLNEncoder, RLNInstance } from "../../node_modules/@waku/rln/dist/index.d"
+import { ChatMessage } from "../types/ChatMessage"
+import { dateToEpoch } from "../utils/formatting"
 
 type MessageStore = {
-    messageText: string;
+    message: string;
     epoch: bigint;
     rlnProof: RateLimitProof | undefined;
 }
+
 
 /*
  * Create a chat room
@@ -18,13 +20,13 @@ type MessageStore = {
 export class ChatRoom {
     public roomType: RoomType
     public contentTopic: string
-    public decoder: rln.RLNDecoder<Message>
-    public encoder: rln.RLNEncoder
+    public decoder: RLNDecoder<Message>
+    public encoder: RLNEncoder
     public chatStore: MessageStore[]
     public waku: WakuLight
-    public rlnInstance: rln.RLNInstance
+    public rlnInstance: RLNInstance
     public provider: Web3Provider 
-    private userMemkey: rln.MembershipKey    
+    private userMemkey: MembershipKey    
     private userMemkeyIndex: number
     private chatMembers: string[]
     public unsubscribeWaku?: UnsubscribeFunction 
@@ -34,10 +36,10 @@ export class ChatRoom {
         roomType: RoomType,
         waku: WakuLight,
         provider: Web3Provider,
-        userMemkey: rln.MembershipKey,
+        userMemkey: MembershipKey,
         userMemkeyIndex: number,
         chatMembers: string[],
-        rlnInstance: rln.RLNInstance,
+        rlnInstance: RLNInstance,
     ) {
         this.contentTopic = contentTopic
         this.roomType = roomType
@@ -50,10 +52,10 @@ export class ChatRoom {
         this.chatStore = []
         
         /* init decoder and encoder */
-        this.decoder = new rln.RLNDecoder(
+        this.decoder = new RLNDecoder(
             this.rlnInstance, 
             new DecoderV0(this.contentTopic))
-        this.encoder = new rln.RLNEncoder(
+        this.encoder = new RLNEncoder(
             new EncoderV0(this.contentTopic),
             this.rlnInstance,
             this.userMemkeyIndex,
@@ -68,35 +70,36 @@ export class ChatRoom {
     // encryption: create unique userID by hashing together rlncred + chatroom
 
     public async processIncomingMessage(msgBuf: Message) {
-        if (!msgBuf.payload || ProtoChatMessage.verify(msgBuf)) return;
+        if (!msgBuf.payload) return
         
         try {
-            const { messageText, nickname, timestamp } = ProtoChatMessage.decode(msgBuf.payload)
+            const msg = ChatMessage.decode(msgBuf.payload)
+            console.log(msg)
             if (!msgBuf.rateLimitProof) {
                 console.log('No Proof')
             } 
             // todo: handle proof
-
-            console.log(`Message Received from ${nickname}: ${messageText}, sent at ${timestamp.toString()}`)
-            this.chatStore.push({ messageText, epoch: timestamp, rlnProof: msgBuf.rateLimitProof })
+            // console.log(`Message Received: ${message}, sent at ${timestamp.toString()}`)
+            //this.chatStore.push({ message, epoch: timestamp, rlnProof: msgBuf.rateLimitProof })
         } catch(e) {
             console.log('Error receiving message')
         }
       }
 
     /* send a message */
-    public async sendMessage(nickname: string, message: string) {
-        const time = new Date()
+    public async sendMessage(message: string, alias: string, rln_proof: ) {
+        const date = new Date()
 
         // encode to protobuf
-        const protoMsg = ProtoChatMessage.create({
-            messageText: message,
-            timestamp: Math.floor(time.valueOf() / 1000),
-            nickname: nickname,
+        const protoMsg = new ChatMessage({
+            message: message,
+            epoch: dateToEpoch(date),
+            rln_proof: rln_proof,
+            alias: alias,
         });
-        const payload = ProtoChatMessage.encode(protoMsg).finish()
-        await this.waku.lightPush.push(this.encoder, { payload, timestamp: time }).then(() => {
-            console.log(`Sent Encoded Message: ${protoMsg}`)
+        const payload = protoMsg.encode()
+        const result = await this.waku.lightPush.push(this.encoder, { payload }).then(() => {
+            console.log(`Sent Encoded Message: ${result}`)
         })
     }
 

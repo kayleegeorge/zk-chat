@@ -7,3 +7,8 @@ export function arrayify(key: string): Uint8Array {
 export function stringify(arr: Uint8Array): string {
     return ethers.utils.hexlify(arr)
 }
+
+export function dateToEpoch(timestamp: Date): bigint {
+    const timeInMS = timestamp.getTime()
+    return BigInt(Math.floor(timeInMS / 1000))
+}
