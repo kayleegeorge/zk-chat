@@ -2,6 +2,8 @@
 /node_modules
 /dist
 .env
+/rlnjs
+/rln-circuits
 
 coverage
 coverage.json

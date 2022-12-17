@@ -9,7 +9,7 @@ module.exports = {
   },
   transformIgnorePatterns: ['^.+\\.js$'],
   modulePaths: [
-    "<rootDir>/src", "<rootDir>/node_modules" 
+    "<rootDir>/src", "<rootDir>/node_modules"
   ],
   moduleDirectories: [
     "src", "node_modules"

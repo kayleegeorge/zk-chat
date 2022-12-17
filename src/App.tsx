@@ -40,7 +40,7 @@ export default function App() {
     
     console.log(`Setup: rlnInstance = ${rlnInstance}`)
     const zkChat = new ChatApp('zkChat', waku, provider, rlnInstance)  
-    const rlnCreds = await zkChat.userRegistration()
+    // const rlnCreds = await zkChat.userRegistration()
     return (
         <>
         </>

@@ -8,6 +8,8 @@ import { MembershipKey } from "@waku/rln"
 import { Contract, ethers } from "ethers"
 import { arrayify, stringify } from "../utils/formatting"
 import { RLN_ABI, RLN_ADDRESS } from "../rln/contractInfo"
+import { ZkIdentity } from "@zk-kit/identity"
+import RLNRegistry from "rlnjs/lib/registry/RLNRegistry"
 
 /* types for reference:
 * -----
@@ -24,61 +26,47 @@ export class ChatApp {
     protected chatRoomStore: Record<string, ChatRoom>
     protected waku: WakuLight
     protected rlnContract: Contract
-    protected rlnInstance: rln.RLNInstance
+    protected rlnRegistry: RLNRegistry
     protected provider: Web3Provider
 
     public constructor(
         appName: string,
         waku: WakuLight,
         provider: Web3Provider,
-        rlnInstance: rln.RLNInstance 
+        rlnRegistry: RLNRegistry
       ) {
         this.appName = appName
         this.provider = provider
-        this.rlnInstance = rlnInstance
+        this.rlnRegistry = rlnRegistry
         this.waku = waku 
     
         this.chatRoomStore = {}
-        this.rlnContract = new ethers.Contract(RLN_ADDRESS, RLN_ABI, this.provider)
+        
       }
 
+      //TODO: ask tyler -- do we need whole zkidentity() or just existing id commiemnt
     /* RLN-level existing memkey generation */
     public registerExistingUser(existingIDKey: string, existingIDCommitment: string) {
-      const memberKeys = new MembershipKey(arrayify(existingIDKey), arrayify(existingIDCommitment))
-      this.rlnInstance.insertMember(memberKeys.IDCommitment)
-      return memberKeys
+      // const memberKeys = new MembershipKey(arrayify(existingIDKey), arrayify(existingIDCommitment))
+      this.rlnRegistry.addMember(existingIDCommitment)
     }
 
     /* RLN-level new user memkey generation */
     public registerNewUser() {
-      const memberKeys = this.rlnInstance.generateMembershipKey() // IDKey, IDcommitment
-      this.rlnInstance.insertMember(memberKeys.IDCommitment)
-      return memberKeys
+      const identity = new ZkIdentity()
+      const identityCommitment = identity.genIdentityCommitment()
+      this.rlnRegistry.addMember(identityCommitment)
+      return identity
     }
 
-    public generateRLNcredentials(userMemkey: rln.MembershipKey, userMemkeyIndex: number) {
-      return { 
-        "application": this.appName, 
-        "appIdentifier": this.rlnInstance.toString(), // figure out string version
-        "credentials": [{
-          "key": stringify(userMemkey.IDKey),
-          "commitment": stringify(userMemkey.IDCommitment),
-          "membershipGroups": [{
-            "chainId": GOERLI, // chainge to optimism when time
-            "contract": this.rlnContract.address,
-            "treeIndex": userMemkeyIndex.toString()
-          }]
-        }],
-        "version": 1 // change
-      }
-    }
+
 
     /* app-level user registration: add user to chatApp */
     public async userRegistration(existingIDKey?: string, existingIDCommitment?: string) {
       /* RLN credentials */
       const userMemkey = (existingIDCommitment && existingIDKey) ? this.registerExistingUser(existingIDKey, existingIDCommitment) : this.registerNewUser()
       const userMemkeyIndex = await this.registerUserOnRLNContract(userMemkey)      
-      return this.generateRLNcredentials(userMemkey, userMemkeyIndex)
+      return this.generateRLNcredentials(userMemkey, userMemkeyIndex) // to-do: get from RLN class
     }
 
     /* Allow new user registraction with rln contract for rln registry */
@@ -120,7 +108,7 @@ export class ChatApp {
         return 'Error: Please choose different chat name.'
       }
       if (chatMembers) {
-        const chatroom = new ChatRoom(contentTopic, roomType, this.waku, this.provider, userMemkey, userMemkeyIndex, chatMembers, this.rlnInstance)
+        const chatroom = new ChatRoom(contentTopic, roomType, this.provider, userMemkey, userMemkeyIndex, chatMembers, this.rlnRegistry)
         this.chatRoomStore[contentTopic] = chatroom
         return chatroom
       } else {

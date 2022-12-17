@@ -1,28 +1,22 @@
 import { bytesToUtf8, utf8ToBytes } from "js-waku/lib/utils";
+import { RLNFullProof } from "rlnjs/src";
 import * as proto from "../proto/chat_message"
 
-/**
- * ChatMessage is used by the various show case waku apps that demonstrates
- * waku used as the network layer for chat group applications.
- */
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}
 
-  /**
-   * Create Chat Message with a utf-8 string as payload.
-   */
+  /* Create Chat Message with a utf-8 string as payload. */
   static fromUtf8String(
-    message: string,
+    text: string,
     epoch: bigint,
-    // rln_proof: Uint8Array,
-    alias?: string
+    rln_proof: RLNFullProof,
   ): ChatMessage {
-    const payload = utf8ToBytes(message);
+    const message = utf8ToBytes(text)
 
     return new ChatMessage({
         message, 
         epoch,
-        alias
+        rln_proof,
     })
   }
 
@@ -47,11 +41,11 @@ export class ChatMessage {
     return this.epoch
   }
 
-  get alias(): string {
-    return this.proto.alias ?? ""
+  get messageAsUtf8(): string {
+    return this.proto.message ? bytesToUtf8(this.proto.message) : ""
   }
 
-  get message(): string {
-    return this.proto.message
+  get rln_proof(): RLNFullProof | undefined {
+    return this.proto.rln_proof
   }
 }

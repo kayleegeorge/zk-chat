@@ -4,12 +4,12 @@
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
+import { RLNFullProof } from "rlnjs/src";
 
 export interface ChatMessage {
-    message: string 
-    epoch: bigint // unix time rounded to the minute
-    // rln_proof: Uint8Array
-    alias?: string
+    message?: Uint8Array
+    epoch?: bigint // unix time rounded to the minute
+    rln_proof?: RLNFullProof 
 }
 
 export namespace ChatMessage {
@@ -25,7 +25,7 @@ export namespace ChatMessage {
 
           if (obj.message != null) {
             writer.uint32(10)
-            writer.string(obj.message)
+            writer.bytes(obj.message)
           } else {
             throw new Error(
               'Protocol error: required field "message" was not found in object'
@@ -40,9 +40,17 @@ export namespace ChatMessage {
               'Protocol error: required field "epoch" was not found in object'
             );
           }
-          if (obj.alias != null) {
-            writer.uint32(34)
-            writer.string(obj.alias)
+
+          // TODO: fix writer type her
+          if (obj.rln_proof != null) {
+            writer.uint32(26)
+            writer.bytes(obj.rln_proof)
+            // RateLimitProof.codec().encode(obj.rateLimitProof, writer);
+
+          } else {
+            throw new Error(
+              'Protocol error: required field "rln_proof" was not found in object'
+            )
           }
 
           if (opts.lengthDelimited !== false) {
@@ -51,9 +59,9 @@ export namespace ChatMessage {
         },
         (reader, length) => {
           const obj: any = {
-            message: "",
+            message: new Uint8Array(0),
             epoch: 0,
-            alias: ""
+            rln_proof: new Uint8Array(0), // change
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -63,13 +71,19 @@ export namespace ChatMessage {
 
             switch (tag >>> 3) {
               case 1:
-                obj.message = reader.string();
-                break;
+                obj.message = reader.bytes()
+                break
               case 2:
-                obj.epoch = reader.uint64();
-                break;
+                obj.epoch = reader.uint64()
+                break
               case 3:
-                obj.alias = reader.string()
+                obj.rln_proof = reader.bytes()
+                /*
+                  obj.rateLimitProof = RateLimitProof.codec().decode(
+                  reader,
+                  reader.uint32()
+                );
+                */
                 break
               default:
                 reader.skipType(tag & 7);
@@ -83,11 +97,11 @@ export namespace ChatMessage {
             );
           }
 
-          // if (obj.rln_proof == null) {
-          //   throw new Error(
-          //     'Protocol error: value for required field "rln_proof" was not found in protobuf'
-          //   );
-          // }
+          if (obj.rln_proof == null) {
+            throw new Error(
+              'Protocol error: value for required field "rln_proof" was not found in protobuf'
+            );
+          }
 
           if (obj.message == null) {
             throw new Error(

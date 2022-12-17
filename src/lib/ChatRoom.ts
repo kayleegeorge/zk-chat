@@ -1,27 +1,33 @@
 import { Message, RateLimitProof, WakuLight } from "js-waku/lib/interfaces"
 import { Web3Provider } from "@ethersproject/providers"
-import { DecoderV0, EncoderV0 } from "../types/Coders"
 import { RoomType } from "../types/ChatRoomOptions"
 import { UnsubscribeFunction } from "js-waku/lib/waku_filter"
-import { MembershipKey, RLNDecoder, RLNEncoder, RLNInstance } from "../../node_modules/@waku/rln/dist/index.d"
+import { MembershipKey, Proof, RLNDecoder, RLNEncoder, RLNInstance } from "../../node_modules/@waku/rln/dist/index.d"
 import { ChatMessage } from "../types/ChatMessage"
 import { dateToEpoch } from "../utils/formatting"
+import { Connection, ConnectionMethod, ProofState } from "./Connection"
+import { RLN, RLNMember } from "../lib/RLN"
+import { RLNFullProof } from "rlnjs/src/types"
 
 type MessageStore = {
-    message: string;
-    epoch: bigint;
-    rlnProof: RateLimitProof | undefined;
+    message: string
+    epoch: bigint
+    rlnProof: RLNFullProof | undefined
     proofState: ProofState
+    alias: string
 }
 
-// todo: move this
-enum ProofState {
-    none = 'none',
-    processing = 'processing',
-    verified = 'verified',
-    invalid = 'invalid'
-}
+/*
+chat room should abstract away processing/sending message. 
+generating RLN instance / connection.ts
 
+Connection and RLN are wrapper classes
+
+have one connection for waku 
+
+take away Waku stuff from here and abstract away 
+and abstract away rln stuff
+*/
 
 /*
  * Create a chat room
@@ -32,94 +38,40 @@ export class ChatRoom {
     public decoder: RLNDecoder<Message>
     public encoder: RLNEncoder
     public chatStore: MessageStore[]
-    public waku: WakuLight
-    public rlnInstance: RLNInstance
+    public rlnInstance: RLN
     public provider: Web3Provider 
-    private userMemkey: MembershipKey    
-    private userMemkeyIndex: number
+    public connection: Connection
+    private rlnMember: RLNMember
     private chatMembers: string[]
     public unsubscribeWaku?: UnsubscribeFunction 
 
     public constructor(
         contentTopic: string,
         roomType: RoomType,
-        waku: WakuLight,
         provider: Web3Provider,
-        userMemkey: MembershipKey,
-        userMemkeyIndex: number,
+        rlnMember: RLNMember, 
         chatMembers: string[],
-        rlnInstance: RLNInstance,
+        rlnInstance: RLN,
     ) {
         this.contentTopic = contentTopic
         this.roomType = roomType
-        this.waku = waku
         this.provider = provider
         this.rlnInstance = rlnInstance
-        this.userMemkey = userMemkey
-        this.userMemkeyIndex = userMemkeyIndex
+        this.rlnMember = rlnMember
         this.chatMembers = chatMembers
         this.chatStore = []
-        
-        /* init decoder and encoder */
-        this.decoder = new RLNDecoder(
-            this.rlnInstance, 
-            new DecoderV0(this.contentTopic))
-        this.encoder = new RLNEncoder(
-            new EncoderV0(this.contentTopic),
-            this.rlnInstance,
-            this.userMemkeyIndex,
-            this.userMemkey)
-        this.subscribeWaku()
-    }
 
-    public async subscribeWaku() {        
-        this.unsubscribeWaku = await this.waku.filter.subscribe([this.decoder], this.processIncomingMessage)
+        this.connection = new Connection(ConnectionMethod.Waku, this.rlnInstance, this.rlnMember, this.contentTopic) 
     }
 
     // encryption: create unique userID by hashing together rlncred + chatroom
+    // check which type message is
 
-    public async processIncomingMessage(msgBuf: Message) {
-        if (!msgBuf.payload) return
-        
-        try {
-            const { message, epoch, alias } = ChatMessage.decode(msgBuf.payload)
-            const timestamp = new Date().setTime(Number(epoch) * 1000)
-
-            let proofState, verifyNoRoots, verify
-            if (!msgBuf.rateLimitProof) {
-                console.log('No Proof with Message')
-                proofState = ProofState.none
-            } else {
-                console.log(`Proof attached: ${msgBuf.rateLimitProof}`)
-                // TODO: check if the second arg needs to have contentTopic
-                verifyNoRoots = this.rlnInstance.verifyRLNProof(msgBuf.rateLimitProof, msgBuf.payload)
-                verify = this.rlnInstance.verifyWithRoots(msgBuf.rateLimitProof, msgBuf.payload)
-                proofState = ProofState.processing
-            }
-            
-            // todo: handle proof: change proof state based on verify
-            console.log(`Message Received from ${alias}: ${message}, sent at ${timestamp}`)
-            this.chatStore.push({ message, epoch, rlnProof: msgBuf.rateLimitProof, proofState })
-        } catch(e) {
-            console.log('Error receiving message')
-        }
-      }
-
-    /* send a message */
-    public async sendMessage(message: string, alias: string) {
-        const date = new Date()
-
-        // encode to protobuf
-        const protoMsg = new ChatMessage({
-            message: message,
-            epoch: dateToEpoch(date),
-            alias: alias,
-        });
-        const payload = protoMsg.encode()
-        const result = await this.waku.lightPush.push(this.encoder, { payload }).then(() => {
-            console.log(`Sent Encoded Message: ${result}`)
-        })
+    public async receiveMessage() {
+        const receivedMsg = this.connection.processIncomingMessage() // todo: fix
+        this.chatStore.push(receivedMsg)
     }
+    
 
     /* clean up message store rln proofs after n epochs */
     public async cleanMessageStore(n: number) {

@@ -1,21 +1,20 @@
+import { RLNFullProof } from "rlnjs/src"
 import { dateToEpoch } from "../utils/formatting"
 import { ChatMessage } from "./chatMessage"
-import { MessageV0 } from "../../node_modules/js-waku/dist/lib/waku_message/version_0.js"
 
-// TODO: investigate what type of message waku sends (Message? Message V0?)
 
+/* chatMessage type with alias attached */
 export class Message {
   public chatMessage: ChatMessage
-  // WakuMessage timestamp
-  public sentTimestamp: Date | undefined
-  // might have to add rln proof? 
+  public alias: string | undefined
 
-  constructor(chatMessage: ChatMessage, sentTimestamp: Date | undefined) {
+  constructor(chatMessage: ChatMessage, alias?: string) {
     this.chatMessage = chatMessage
-    this.sentTimestamp = sentTimestamp
+    this.alias = alias
   }
 
-  static fromWakuMessage(wakuMsg: MessageV0): Message | undefined {
+  // TODO: which type of message is the Waku sending
+  static fromWakuMessage(wakuMsg: any): Message | undefined {
     if (wakuMsg.payload) {
       try {
         const chatMsg = ChatMessage.decode(wakuMsg.payload);
@@ -29,20 +28,20 @@ export class Message {
     return;
   }
 
-  static fromUtf8String(message: string, rln_proof: Uint8Array, alias?: string): Message {
-    const date = new Date()
-    return new Message(ChatMessage.fromUtf8String(message, dateToEpoch(date), alias), date)
+  static fromUtf8String(text: string, rln_proof: RLNFullProof, alias?: string): Message {
+    const epoch = dateToEpoch(new Date())
+    return new Message(ChatMessage.fromUtf8String(text, epoch, rln_proof), alias)
   }
 
   get message() {
-    return this.chatMessage.message;
+    return this.chatMessage.messageAsUtf8
   }
 
   get epoch() {
-    return this.chatMessage.epoch;
+    return this.chatMessage.epoch
   }
 
-  get alias() {
-    return this.chatMessage.alias
+  get rln_proof() {
+    return this.chatMessage.rln_proof
   }
 }
