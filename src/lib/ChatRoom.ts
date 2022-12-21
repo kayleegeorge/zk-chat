@@ -8,8 +8,9 @@ import { dateToEpoch } from "../utils/formatting"
 import { Connection, ConnectionMethod, ProofState } from "./Connection"
 import { RLN, RLNMember } from "../lib/RLN"
 import { RLNFullProof } from "rlnjs/src/types"
+import { useReducer } from "react"
 
-type MessageStore = {
+export type MessageStore = {
     message: string
     epoch: bigint
     rlnProof: RLNFullProof | undefined
@@ -18,26 +19,12 @@ type MessageStore = {
 }
 
 /*
-chat room should abstract away processing/sending message. 
-generating RLN instance / connection.ts
-
-Connection and RLN are wrapper classes
-
-have one connection for waku 
-
-take away Waku stuff from here and abstract away 
-and abstract away rln stuff
-*/
-
-/*
  * Create a chat room
  */
 export class ChatRoom {
     public roomType: RoomType
     public contentTopic: string
-    public decoder: RLNDecoder<Message>
-    public encoder: RLNEncoder
-    public chatStore: MessageStore[]
+    public chatStore: ChatMessage[] // eventually switch to MessageStore[]
     public rlnInstance: RLN
     public provider: Web3Provider 
     public connection: Connection
@@ -61,28 +48,35 @@ export class ChatRoom {
         this.chatMembers = chatMembers
         this.chatStore = []
 
-        this.connection = new Connection(ConnectionMethod.Waku, this.rlnInstance, this.rlnMember, this.contentTopic) 
+        const [messages, updateChatStore] = useReducer(this.reduceMessages, this.chatStore)
+        this.connection = new Connection(ConnectionMethod.Waku, this.rlnInstance, this.rlnMember, updateChatStore, this.contentTopic) 
     }
 
-    // encryption: create unique userID by hashing together rlncred + chatroom
-    // check which type message is
-
-    public async receiveMessage() {
-        const receivedMsg = this.connection.processIncomingMessage() // todo: fix
-        this.chatStore.push(receivedMsg)
+    /* retrieve Store Messages */
+    public async retrieveMessageStore() {
+        this.connection.retrieveMessageStore()
     }
     
+    /* send a message */
+    public async sendMessage(text: string, alias: string) {
+        this.connection.sendMessage(text, alias)
+    }
 
     /* clean up message store rln proofs after n epochs */
     public async cleanMessageStore(n: number) {
         let msgIndex = -1
         const time = new Date()
         const curTime = BigInt(Math.floor(time.valueOf() / 1000))
-        // destroy rln proof after n epochs
-        while(this.chatStore[msgIndex].epoch - curTime > n) {
-           this.chatStore[msgIndex].rlnProof = undefined 
-           msgIndex += 1 
-        } 
+        // TODO: destroy rln proof after n epochs
+
+        // while(this.chatStore[msgIndex].epoch - curTime > n) {
+        //    this.chatStore[msgIndex].rln_proof = undefined 
+        //    msgIndex += 1 
+        // } 
+    }
+
+    public reduceMessages(state: ChatMessage[], newMessages: ChatMessage[]) {
+        return state.concat(newMessages)
     }
 
     /* basic util functions */
@@ -92,11 +86,11 @@ export class ChatRoom {
     public getLastMessage() {
         return this.chatStore[-1]
     }
-    public async addChatMember(user: string) {
+    public async addChatMember(memPubkey: string) {
         if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
             console.error('Cannot add more than 5 members to a private group')
         } else {
-            this.chatMembers.push(user)
+            this.chatMembers.push(memPubkey)
         }
     }
     public getChatMembers() {

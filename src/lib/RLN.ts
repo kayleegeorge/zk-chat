@@ -27,7 +27,23 @@ export class RLN {
 
     public async verifyProof(rlnProof: RLNFullProof) {
       return await RLNjs.verifyProof(vKey, rlnProof)
-  }
+    }
+
+    /* construct RLN member tree locally */
+    public async constructRLNMemberTree() {
+      const memRegEvent = this.contract.filters.MemberRegistered()
+
+      // populate merkle tree with existing users
+      const registeredMembers = await this.contract.queryFilter(memRegEvent)
+      registeredMembers.forEach(event => {
+          if (event.args) this.registry.addMember(event.args.memkey)
+      })
+
+      // listen to new members added to rln contract
+      this.contract.on(memRegEvent, (event) => {
+        this.registry.addMember(event.args.memkey)
+      })
+    }
 } 
 
 /* 
@@ -45,19 +61,14 @@ export class RLNMember {
         existingIdentity?: string, 
     ) {
         this.rln = rln
-        if (existingIdentity) { 
-          this.identity = new Identity(existingIdentity)
-        } else {
-          this.identity = new this.createNew()
-        }
-
+        this.identity = (existingIdentity) ? new Identity(existingIdentity) : new Identity()
+        this.identityCommitment = this.identity.getCommitment() 
         this.rln.registry.addMember(this.identityCommitment)
         this.memIndex = this.rln.registry.indexOf(this.identityCommitment)
     }
 
-    public createNew() {
-        this.identity = new Identity()
-        this.identityCommitment = this.identity.getCommitment()
+    public getIdentityAsString() {
+      return this.identity.toString()
     }
 
     public async generateProof(
@@ -80,7 +91,7 @@ export class RLNMember {
     public generateRLNcredentials(appName: string) {
       return { 
         "application": appName, 
-        "appIdentifier": this.rln.identifier.toString(),
+        "appIdentifier": this.rln.identifier,
         "credentials": [{
           "key": this.identity.getNullifier(),
           "commitment": this.identityCommitment,
@@ -92,5 +103,20 @@ export class RLNMember {
         }],
         "version": 1 // change
       }
+    }
+
+    /* Allow new user registraction with rln contract for rln registry */
+    public async registerUserOnRLNContract(provider: Web3Provider) {
+      const price = await this.rln.contract.MEMBERSHIP_DEPOSIT()
+      const signer = provider.getSigner()
+
+      const rlnContractWithSigner = this.rln.contract.connect(signer)
+      const txResponse = await rlnContractWithSigner.register(this.identityCommitment, {value: price})
+      console.log("Transaction broadcasted: ", txResponse)
+
+      const txReceipt = await txResponse.wait()
+      console.log("Transaction receipt", txReceipt)
+
+      this.memIndex = txReceipt.events[0].args.index.toNumber()
     }
 }

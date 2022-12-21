@@ -7,10 +7,38 @@ import type { Codec } from "protons-runtime";
 import { RLNFullProof } from "rlnjs/src";
 
 export interface ChatMessage {
-    message?: Uint8Array
-    epoch?: bigint // unix time rounded to the minute
-    rln_proof?: RLNFullProof 
+    message: Uint8Array
+    epoch: bigint // unix time rounded to the minute
+    rln_proof: RLNFullProof 
+    alias?: string
 }
+
+/*
+REFERENCE
+export type StrBigInt = string | bigint
+
+export type Proof = {
+  pi_a: StrBigInt[]
+  pi_b: StrBigInt[][]
+  pi_c: StrBigInt[]
+  protocol: string
+  curve: string
+}
+
+export type RLNFullProof = {
+  proof: Proof
+  publicSignals: RLNPublicSignals
+}
+
+export type RLNPublicSignals = {
+  yShare: StrBigInt
+  merkleRoot: StrBigInt
+  internalNullifier: StrBigInt
+  signalHash: StrBigInt
+  epoch: StrBigInt
+  rlnIdentifier: StrBigInt
+}
+*/
 
 export namespace ChatMessage {
   let _codec: Codec<ChatMessage>;
@@ -41,16 +69,20 @@ export namespace ChatMessage {
             );
           }
 
-          // TODO: fix writer type her
+          // TODO: fix writer type here
           if (obj.rln_proof != null) {
             writer.uint32(26)
-            writer.bytes(obj.rln_proof)
             // RateLimitProof.codec().encode(obj.rateLimitProof, writer);
 
           } else {
             throw new Error(
               'Protocol error: required field "rln_proof" was not found in object'
             )
+          }
+
+          if (obj.alias != null) {
+            writer.uint32(34)
+            writer.string(obj.alias)
           }
 
           if (opts.lengthDelimited !== false) {
@@ -62,6 +94,7 @@ export namespace ChatMessage {
             message: new Uint8Array(0),
             epoch: 0,
             rln_proof: new Uint8Array(0), // change
+            alias: "",
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -71,7 +104,7 @@ export namespace ChatMessage {
 
             switch (tag >>> 3) {
               case 1:
-                obj.message = reader.bytes()
+                obj.message = reader.string()
                 break
               case 2:
                 obj.epoch = reader.uint64()
@@ -84,6 +117,9 @@ export namespace ChatMessage {
                   reader.uint32()
                 );
                 */
+                break
+              case 4:
+                obj.alias = reader.string()
                 break
               default:
                 reader.skipType(tag & 7);

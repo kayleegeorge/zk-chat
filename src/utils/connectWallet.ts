@@ -5,7 +5,7 @@ import { checkChain } from "./checkChain";
 declare let window: any
 
 /* get ethereum provider */
-export default async function getProvider(): Promise<Web3Provider> {
+export default async function getProvider(): Promise<Web3Provider | undefined> {
     try {
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         return provider
@@ -15,7 +15,7 @@ export default async function getProvider(): Promise<Web3Provider> {
 }
 
 /* get ethereum pubkey address */
-export async function getAddress(provider: Web3Provider): Promise<string> {
+export async function getAddress(provider: Web3Provider): Promise<string | undefined> {
     try {
         await provider.send("eth_requestAccounts", [])
         const accounts = await provider.send("eth_requestAccounts", [])
