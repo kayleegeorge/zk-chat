@@ -1,4 +1,5 @@
-import { ChatApp } from './lib/ChatApp'
+import ChatApp from './lib/ChatApp'
 import { ChatRoom } from './lib/ChatRoom'
-export { ChatApp, ChatRoom }
+import { RLN } from './lib/RLN'
+export { ChatApp, ChatRoom, RLN }
 

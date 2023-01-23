@@ -1,14 +1,13 @@
-import { createLibp2p } from "../utils/createLibp2p"
+import { createLibp2p } from "src/utils/createLibp2p"
 import { WakuLight } from "js-waku/lib/interfaces";
 import { UnsubscribeFunction } from "js-waku/lib/waku_filter";
-import { RLN, RLNMember } from "./RLN";
-import { ChatMessage } from "../types/ChatMessage";
-import { dateToEpoch } from "../utils/formatting";
-import { utf8ToBytes } from "js-waku/lib/utils";
+import { RLN, RLNMember } from "src/lib/RLN";
+import { ChatMessage } from "src/types/ChatMessage";
+import { dateToEpoch, utf8ToBytes } from "src/utils/formatting";
 import { DecoderV0, EncoderV0, MessageV0 } from "js-waku/lib/waku_message/version_0";
 import { Libp2pOptions } from "libp2p/src/index";
 import { Libp2pNode } from "libp2p/dist/src/libp2p";
-import { getDates, TimePeriod } from "../utils/getDates";
+import { getDates, TimePeriod } from "src/utils/getDates";
 
 export enum ConnectionMethod {
     Libp2p = "libp2p",
@@ -57,12 +56,11 @@ export class Connection {
         const date = new Date()
 
         const rawMessage = { message: text, epoch: dateToEpoch(date)} 
-        const rln_proof = await this.rlnMember.generateProof(rawMessage)
+        //const rln_proof = await this.rlnMember.generateProof(rawMessage)
         
         const protoMsg = new ChatMessage({
             message: utf8ToBytes(text),
-            epoch: dateToEpoch(date),
-            rln_proof, 
+            epoch: dateToEpoch(date), 
             alias
         })
         const payload = protoMsg.encode()

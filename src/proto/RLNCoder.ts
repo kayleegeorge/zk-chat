@@ -1,4 +1,4 @@
-import { RLNFullProof, Proof, StrBigInt } from "rlnjs/src";
+import { RLNFullProof, Proof, StrBigInt } from "rlnjs";
 import type { Codec } from "protons-runtime";
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
 import { RLNPublicSignals } from "rlnjs";
@@ -20,7 +20,8 @@ export namespace Pf {
                     }
                     if (obj.pi_a != null) {
                         writer.uint32(10)
-                        //TODO writer.string(obj.pi_a)
+                        // writer.bytes(new Uint8Array(obj.pi_a))
+                        writer.string(obj.pi_a.toString())
                     } else {
                         throw new Error('Proof: required field "pi_a" not found in proof')
                     }
@@ -112,42 +113,37 @@ export namespace PublicSignals {
                     if (obj.yShare != null) {
                         writer.uint32(10)
                         /* TODO: typing here */
-                        // (typeof obj.yShare === 'string') ? writer.string(obj.yShare) : writer.uint64(obj.yShare)
+                        writer.string(obj.yShare.toString())
                     } else {
                         throw new Error('Proof: required field "yshare" not found in proof')
                     }
                     if (obj.merkleRoot != null) {
                       writer.uint32(18)
-                      /* TODO: typing here */
-                      // (typeof obj.yShare === 'string') ? writer.string(obj.yShare) : writer.uint64(obj.yShare)
+                      writer.string(obj.merkleRoot.toString())
                     } else {
                         throw new Error('Proof: required field "merkleroot" not found in proof')
                     }
                     if (obj.internalNullifier != null) {
                       writer.uint32(26)
-                      /* TODO: typing here */
-                      // (typeof obj.yShare === 'string') ? writer.string(obj.yShare) : writer.uint64(obj.yShare)
+                      writer.string(obj.internalNullifier.toString())
                     } else {
                         throw new Error('Proof: required field "internalNullifer" not found in proof')
                     }
                     if (obj.signalHash != null) {
                       writer.uint32(34)
-                      /* TODO: typing here */
-                      // (typeof obj.yShare === 'string') ? writer.string(obj.yShare) : writer.uint64(obj.yShare)
+                      writer.string(obj.signalHash.toString())
                     } else {
                         throw new Error('Proof: required field "signalHash" not found in proof')
                     }
                     if (obj.epoch != null) {
                       writer.uint32(42)
-                      /* TODO: typing here */
-                      // (typeof obj.yShare === 'string') ? writer.string(obj.yShare) : writer.uint64(obj.yShare)
+                      writer.string(obj.epoch.toString())
                     } else {
                         throw new Error('Proof: required field "epoch" not found in proof')
                     }
                     if (obj.rlnIdentifier != null) {
                       writer.uint32(50)
-                      /* TODO: typing here */
-                      // (typeof obj.yShare === 'string') ? writer.string(obj.yShare) : writer.uint64(obj.yShare)
+                      writer.string(obj.rlnIdentifier.toString())
                     } else {
                         throw new Error('Proof: required field "rlnIdentifier" not found in proof')
                     }
@@ -178,13 +174,13 @@ export namespace PublicSignals {
                         obj.internalNullifier = reader.bytes();
                         break;
                       case 4:
-                        obj.signalHash = reader.string();
+                        obj.signalHash = reader.bytes();
                         break;
                       case 5:
-                        obj.epoch = reader.string();
+                        obj.epoch = reader.bytes();
                         break;
                       case 6:
-                        obj.rlnIdentifier = reader.string()
+                        obj.rlnIdentifier = reader.bytes()
                         break
                       default:
                         reader.skipType(tag & 7);

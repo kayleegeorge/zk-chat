@@ -1,6 +1,6 @@
-import { bytesToUtf8, utf8ToBytes } from "js-waku/lib/utils";
-import { RLNFullProof } from "rlnjs/src";
-import * as proto from "../proto/chat_message"
+import { bytesToUtf8, utf8ToBytes } from "src/utils/formatting"
+import { RLNFullProof } from "rlnjs"
+import * as proto from "src/proto/chat_message"
 
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}
@@ -59,7 +59,7 @@ export class ChatMessage {
     return bytesToUtf8(this.proto.message)
   }
 
-  get rln_proof(): RLNFullProof {
+  get rln_proof(): RLNFullProof | undefined {
     return this.proto.rln_proof
   }
 

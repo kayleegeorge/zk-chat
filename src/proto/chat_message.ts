@@ -4,41 +4,14 @@
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
-import { RLNFullProof } from "rlnjs/src";
+import { RLNFullProof } from "rlnjs";
 
 export interface ChatMessage {
     message: Uint8Array
     epoch: bigint // unix time rounded to the minute
-    rln_proof: RLNFullProof 
+    rln_proof?: RLNFullProof // make non optional once rlnjs updates
     alias?: string
 }
-
-/*
-REFERENCE
-export type StrBigInt = string | bigint
-
-export type Proof = {
-  pi_a: StrBigInt[]
-  pi_b: StrBigInt[][]
-  pi_c: StrBigInt[]
-  protocol: string
-  curve: string
-}
-
-export type RLNFullProof = {
-  proof: Proof
-  publicSignals: RLNPublicSignals
-}
-
-export type RLNPublicSignals = {
-  yShare: StrBigInt
-  merkleRoot: StrBigInt
-  internalNullifier: StrBigInt
-  signalHash: StrBigInt
-  epoch: StrBigInt
-  rlnIdentifier: StrBigInt
-}
-*/
 
 export namespace ChatMessage {
   let _codec: Codec<ChatMessage>;
@@ -74,11 +47,12 @@ export namespace ChatMessage {
             writer.uint32(26)
             // RateLimitProof.codec().encode(obj.rateLimitProof, writer);
 
-          } else {
-            throw new Error(
-              'Protocol error: required field "rln_proof" was not found in object'
-            )
-          }
+          } 
+          // else {
+          //   throw new Error(
+          //     'Protocol error: required field "rln_proof" was not found in object'
+          //   )
+          // }
 
           if (obj.alias != null) {
             writer.uint32(34)
@@ -134,9 +108,10 @@ export namespace ChatMessage {
           }
 
           if (obj.rln_proof == null) {
-            throw new Error(
-              'Protocol error: value for required field "rln_proof" was not found in protobuf'
-            );
+            // throw new Error(
+            //   'Protocol error: value for required field "rln_proof" was not found in protobuf'
+            // );
+            console.log('no rln proof attached')
           }
 
           if (obj.message == null) {
