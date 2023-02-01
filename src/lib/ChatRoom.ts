@@ -41,7 +41,8 @@ export class ChatRoom {
         this.chatMembers = chatMembers
         this.chatStore = []
 
-        this.connection = new Connection(ConnectionMethod.Waku, this.rlnInstance, this.rlnInstance.identity, updateChatStore, this.contentTopic) 
+        // need to update Chat Store
+        this.connection = new Connection(ConnectionMethod.Waku, this.rlnInstance, updateChatStore, this.contentTopic) 
     }
 
     /* retrieve Store Messages */

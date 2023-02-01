@@ -52,7 +52,7 @@ export class RLN {
     public async generateRLNProof(msg: string, epoch: bigint) {
       const epochNullifier = genExternalNullifier(epoch.toString())
       const merkleProof = await this.registry.generateMerkleProof(this.identityCommitment)
-      const proof = this.rlnInstance.genProof(msg, merkleProof, epochNullifier)
+      const proof = this.rlnInstance.generateProof(msg, merkleProof, epochNullifier)
       return proof
     }
 
