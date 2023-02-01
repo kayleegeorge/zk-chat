@@ -38,7 +38,7 @@
     "js-waku": "^0.30.0",
     "libp2p": "^0.38.0",
     "react": "^18.2.0",
-    "rlnjs": "github:Rate-Limiting-Nullifier/rlnjs#refactor/v2"
+    "rlnjs": "github:Rate-Limiting-Nullifier/rlnjs"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
