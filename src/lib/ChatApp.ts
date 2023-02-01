@@ -8,11 +8,11 @@ export default class ChatApp {
     public appName: string
     public chatRoomStore: Map<string, ChatRoom>
     public rln: RLN
-    public provider: Web3Provider
+    public provider: Web3Provider | undefined
 
     public constructor(
         appName: string,
-        provider: Web3Provider,
+        provider?: Web3Provider,
         existingIdentity?: string,
         rlnIdentifier?: bigint
       ) {
@@ -33,6 +33,7 @@ export default class ChatApp {
 
     /* app-level user registration: add user to chatApp and RLN registry */
     public async registerUser(existingIdentity?: string) {
+      if (!this.provider) return 
       this.rln.constructRLNMemberTree() 
       await this.rln.registerUserOnRLNContract(this.provider) // TODO: maybe this not needed? investigate
       return this.rln.identity
@@ -45,6 +46,7 @@ export default class ChatApp {
         console.log('Error: Please choose different chat name.')
       }
       if (chatMembers) {
+        if (!this.provider) return 
         const chatroom = new ChatRoom(contentTopic, roomType, this.provider, chatMembers, this.rln)
         this.chatRoomStore.set(contentTopic, chatroom)
         return chatroom
