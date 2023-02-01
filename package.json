@@ -4,10 +4,8 @@
   "description": "decentralized p2p library",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
     "test": "jest",
-    "build": "next build",
-    "start": "next start"
+    "build": "tsc -p tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -49,6 +47,7 @@
     "@types/chai": "^4.3.4",
     "@types/jest": "^29.2.3",
     "@types/react": "^18.0.26",
+    "@webpack-cli/generators": "^3.0.1",
     "ethers": "^5.7.2",
     "hardhat": "^2.12.4",
     "prettier": "^2.8.1",
