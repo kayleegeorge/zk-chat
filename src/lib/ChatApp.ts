@@ -1,9 +1,8 @@
 import { Web3Provider } from '@ethersproject/providers'
-import { ChatRoom } from "../lib/ChatRoom"
+import { ChatRoom } from "./ChatRoom"
 import { RoomType } from "../types/ChatRoomOptions"
-import { checkChain, GOERLI } from "../utils/checkChain"
 import { Identity } from "@semaphore-protocol/identity"
-import { RLN } from "../lib/RLN"
+import { RLN } from "./RLN"
 
 export default class ChatApp {
     public appName: string
@@ -14,11 +13,12 @@ export default class ChatApp {
     public constructor(
         appName: string,
         provider: Web3Provider,
-        existingIdentity: string
+        existingIdentity?: string,
+        rlnIdentifier?: bigint
       ) {
         this.appName = appName
         this.provider = provider
-        this.rln = new RLN(existingIdentity)
+        this.rln = new RLN(existingIdentity, rlnIdentifier, provider)
     
         this.chatRoomStore = new Map<string, ChatRoom>()
       }
@@ -32,20 +32,20 @@ export default class ChatApp {
     }
 
     /* app-level user registration: add user to chatApp and RLN registry */
-    public async registerUser() {
+    public async registerUser(existingIdentity?: string) {
       this.rln.constructRLNMemberTree() 
-      await rlnMember.registerUserOnRLNContract(this.provider)
-      return rlnMember
+      await this.rln.registerUserOnRLNContract(this.provider) // TODO: maybe this not needed? investigate
+      return this.rln.identity
     }
 
     /* create chat room */
-    public createChatRoom(name: string, roomType: RoomType, chatMembers: string[]) {
+    public createChatRoom(name: string, roomType: RoomType, identity: string, chatMembers: string[]) {
       const contentTopic = `/${this.appName}/0.0.1/${roomType}-${name}/proto/`
       if (contentTopic in this.chatRoomStore) {
         console.log('Error: Please choose different chat name.')
       }
       if (chatMembers) {
-        const chatroom = new ChatRoom(contentTopic, roomType, this.provider, this.rln.identity, chatMembers, this.rln)
+        const chatroom = new ChatRoom(contentTopic, roomType, this.provider, chatMembers, this.rln)
         this.chatRoomStore.set(contentTopic, chatroom)
         return chatroom
       } else {

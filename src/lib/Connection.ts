@@ -1,13 +1,13 @@
-import { createLibp2p } from "src/utils/createLibp2p"
+import { createLibp2p } from "../utils/createLibp2p"
 import { WakuLight } from "js-waku/lib/interfaces";
 import { UnsubscribeFunction } from "js-waku/lib/waku_filter";
-import { RLN, RLNMember } from "src/lib/RLN";
-import { ChatMessage } from "src/types/ChatMessage";
-import { dateToEpoch, utf8ToBytes } from "src/utils/formatting";
+import { RLN } from "./RLN";
+import { ChatMessage } from "../types/ChatMessage";
+import { dateToEpoch, utf8ToBytes } from "../utils/formatting";
 import { DecoderV0, EncoderV0, MessageV0 } from "js-waku/lib/waku_message/version_0";
 import { Libp2pOptions } from "libp2p/src/index";
 import { Libp2pNode } from "libp2p/dist/src/libp2p";
-import { getDates, TimePeriod } from "src/utils/getDates";
+import { getDates, TimePeriod } from "../utils/getDates";
 
 export enum ConnectionMethod {
     Libp2p = "libp2p",
@@ -24,16 +24,14 @@ export enum ProofState {
 export class Connection {
     public connectionMethod: ConnectionMethod
     private connectionInstance: Libp2pConnection | WakuConnection
-    private rlnMember: RLNMember
     private rlnInstance: RLN
 
     constructor(connectionMethod: ConnectionMethod, 
-                rlnInstance: RLN, rlnMember: RLNMember, 
+                rlnInstance: RLN, 
                 updateChatStore: (value: ChatMessage[]) => void,
                 wakuContentTopic: string, // change to optional 
                 libp2pOptions?: Libp2pOptions) {
         this.connectionMethod = connectionMethod
-        this.rlnMember = rlnMember
         this.rlnInstance = rlnInstance
         // default Waku
         this.connectionInstance = new WakuConnection(wakuContentTopic, rlnInstance, updateChatStore)
@@ -56,7 +54,7 @@ export class Connection {
         const date = new Date()
 
         const rawMessage = { message: text, epoch: dateToEpoch(date)} 
-        //const rln_proof = await this.rlnMember.generateProof(rawMessage)
+        const rln_proof = await this.rlnInstance.generateRLNProof(rawMessage.message, rawMessage.epoch)
         
         const protoMsg = new ChatMessage({
             message: utf8ToBytes(text),

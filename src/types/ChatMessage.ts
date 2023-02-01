@@ -1,6 +1,6 @@
-import { bytesToUtf8, utf8ToBytes } from "src/utils/formatting"
+import { bytesToUtf8, utf8ToBytes } from "zkchat/utils/formatting"
 import { RLNFullProof } from "rlnjs"
-import * as proto from "src/proto/chat_message"
+import * as proto from "zkchat/proto/chat_message"
 
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}

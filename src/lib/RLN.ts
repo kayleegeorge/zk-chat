@@ -19,16 +19,18 @@ export class RLN {
     public contract: Contract
     public rlnInstance: RLNjs
     public cache: Cache
-    private identity: Identity
+    public identity: Identity
+    public rlnIdentifier: bigint
     private identityCommitment: bigint
     private memIndex: number
 
-    constructor(existingIdentity?: string, provider?: ethers.providers.Provider) {
+    constructor(existingIdentity?: string, rlnIdentifier?: bigint, provider?: ethers.providers.Provider) {
         // RLN
         this.contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI) // might need to add back provider
         this.registry = new Registry()
-        this.identity = (existingIdentity) ? new Identity(existingIdentity) : new Identity()
-        this.rlnInstance = new RLNjs(wasmFilePath, finalZkeyPath, vkey, undefined, this.identity)
+        this.rlnInstance = new RLNjs(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity)
+        this.identity = this.rlnInstance.identity
+        this.rlnIdentifier = this.rlnInstance.rlnIdentifier
         this.identityCommitments = []
         this.cache = new Cache(this.rlnInstance.rlnIdentifier)
 
@@ -47,10 +49,10 @@ export class RLN {
     }
 
     // generateProof 
-    public async generateRLNProof(msg: string, epochStr: string) {
-      const epoch = genExternalNullifier(epochStr)
+    public async generateRLNProof(msg: string, epoch: bigint) {
+      const epochNullifier = genExternalNullifier(epoch.toString())
       const merkleProof = await this.registry.generateMerkleProof(this.identityCommitment)
-      const proof = this.rlnInstance.genProof(msg, merkleProof, epoch)
+      const proof = this.rlnInstance.genProof(msg, merkleProof, epochNullifier)
       return proof
     }
 
@@ -96,7 +98,6 @@ export class RLN {
         console.log("member withdrawn: ", withdrawRes)
       }
     }
-
 
     /* generate RLN credentials */
     public generateRLNcredentials(appName: string) {

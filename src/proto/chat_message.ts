@@ -1,5 +1,4 @@
 /* eslint-disable import/export */
-/* eslint-disable @typescript-eslint/no-namespace */
 
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
