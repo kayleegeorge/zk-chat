@@ -1,5 +1,5 @@
 //import { ChatApp } from '..'
-import { createWakuNode } from '../utils/createWakuNode'
+import { createWakuNode } from '../src/utils/createWakuNode'
 describe("waku node", async () => {
     const wakuNode = await createWakuNode()
     assert(wakuNode !== undefined)
