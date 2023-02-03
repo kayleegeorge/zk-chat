@@ -9,7 +9,6 @@ export class ChatMessage {
   static fromUtf8String(
     text: string,
     epoch: bigint,
-    roomName: string,
     rln_proof: RLNFullProof,
     alias?: string
   ): ChatMessage {
@@ -18,7 +17,6 @@ export class ChatMessage {
     return new ChatMessage({
         message, 
         epoch,
-        roomName,
         rln_proof,
         alias
     })

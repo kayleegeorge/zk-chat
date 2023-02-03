@@ -1,37 +1,34 @@
-import { createLibp2p } from "./utils/createLibp2p"
-import { WakuLight } from "js-waku/lib/interfaces";
+import { Decoder, WakuLight } from "js-waku/lib/interfaces";
 import { UnsubscribeFunction } from "js-waku/lib/waku_filter";
 import { RLN } from "./RLN";
 import { ChatMessage } from "./types/ChatMessage";
 import { dateToEpoch, utf8ToBytes } from "./utils/formatting";
 import { DecoderV0, EncoderV0, MessageV0 } from "js-waku/lib/waku_message/version_0";
-import { Libp2pOptions } from "libp2p/src/index";
-import { Libp2pNode } from "libp2p/dist/src/libp2p";
 import { getDates, TimePeriod } from "./utils/getDates";
+import { createWakuNode } from "./utils/createWakuNode";
 
-export enum ConnectionMethod {
-    Libp2p = "libp2p",
-    Waku = "waku"
+enum ConnectionStatus {
+    ready = 'ready',
+    connecting = 'connecting',
+    disconnected = 'disconnected'
 }
 
+type ContentTopicFunctions = {
+    encoder: EncoderV0,
+    decoder: DecoderV0,
+    unsubscribe: UnsubscribeFunction
+}
+
+/* note: can use this class to add more connection types in the future */
 export class Connection {
-    public connectionMethod: ConnectionMethod
-    private connectionInstance: Libp2pConnection | WakuConnection
+    public connectionStatus: ConnectionStatus 
+    private connectionInstance: WakuConnection 
     private rlnInstance: RLN
 
-    constructor(connectionMethod: ConnectionMethod, 
-                rlnInstance: RLN, 
-                // updateChatStore: (value: ChatMessage[]) => void, // don't 
-                wakuContentTopic: string, 
-                libp2pOptions?: Libp2pOptions) {
-        this.connectionMethod = connectionMethod
+    constructor(rlnInstance: RLN) {
+        this.connectionStatus = ConnectionStatus.disconnected
         this.rlnInstance = rlnInstance
-        // default Waku
-        this.connectionInstance = new WakuConnection(wakuContentTopic, rlnInstance)
-
-        if (this.connectionMethod == ConnectionMethod.Libp2p) {
-            this.connectionInstance = new Libp2pConnection(libp2pOptions)
-        }
+        this.connectionInstance = new WakuConnection(rlnInstance)
     }
 
     public connect() {
@@ -39,7 +36,14 @@ export class Connection {
     }
 
     public disconnect() {
-        if (this.connectionInstance.disconnect) this.connectionInstance.disconnect()
+        this.connectionInstance.disconnect()
+    }
+
+    public subscribeToRoom(contentTopic: string) {
+        this.connectionInstance.subscribe(contentTopic)
+    }
+    public unsubscribeFromRoom(contentTopic: string) {
+        this.connectionInstance.unsubscribe(contentTopic) 
     }
 
     /* send message by encoding to protobuf -> payload for waku message */ 
@@ -53,74 +57,71 @@ export class Connection {
             message: utf8ToBytes(text),
             epoch: dateToEpoch(date), 
             rln_proof: rln_proof,
-            roomName,
             alias,
         })
         const payload = protoMsg.encode() // encode to proto
-        this.connectionInstance.sendMessage(payload)
+        this.connectionInstance.sendMessage(payload, roomName)
     }
 
-    public async retrieveMessageStore() {
-        this.connectionInstance.retrieveMessageStore()
+    public async retrieveMessageStore(contentTopic: string) {
+        this.connectionInstance.retrieveMessageStore(contentTopic)
     }
 
 }
-
-/* Connecting with libp2p as networking layer */
-class Libp2pConnection {
-    public libp2pOptions?: Libp2pOptions
-    public node: Libp2pNode | undefined
-
-    constructor(libp2pOptions?: Libp2pOptions) {
-        this.libp2pOptions = libp2pOptions
-    }
-
-    public async connect() {
-        const node = await createLibp2p(this.libp2pOptions)
-        await node.start()
-    }
-
-    public async disconnect() {
-        if (this.node) this.node.stop()
-    }
-
-    public async sendMessage() {
-        /* todo */
-    }
-    public async retrieveMessageStore() {
-        /*todo*/
-    }
-}
-
 
 /* Connecting with Waku as networking layer */
 class WakuConnection {
     public waku: WakuLight | undefined
-    public disconnect: UnsubscribeFunction | undefined
+    public contentTopicFunctions: Map<string, ContentTopicFunctions>
     public updateChatStore: (value: ChatMessage[]) => void
-    public chatStore: ChatMessage[] // store 
-    private decoder: DecoderV0
-    private encoder: EncoderV0
-    private contentTopic: string 
+    // public chatStore: ChatMessage[] // store 
     private rlnInstance: RLN
-    // private ChatStore: ProofStore[]
 
     // updateChatStore: (value: ChatMessage[]) => void
-    constructor(contentTopic: string, rlnInstance: RLN) {
-        this.contentTopic = contentTopic // will apply to all of 'zk-chat' --> zk chat 
+    constructor(rlnInstance: RLN) {
         this.rlnInstance = rlnInstance
+        this.contentTopicFunctions = new Map()
         // this.updateChatStore = updateChatStore
-        this.decoder = new DecoderV0(this.contentTopic)
-        this.encoder = new EncoderV0(this.contentTopic)
+
     }
 
+    /* subscribe to a certain contentTopic and add content topic functions */
+    public async subscribe(contentTopic: string) {
+        const decoder = new DecoderV0(contentTopic)
+        this.contentTopicFunctions[contentTopic].decoder = decoder
+        this.contentTopicFunctions[contentTopic].encoder = new EncoderV0(contentTopic)
+        const unsubscribe = await this.waku?.filter.subscribe([decoder], this.processIncomingMessage)
+        this.contentTopicFunctions[contentTopic].unsubscribe = unsubscribe
+    }
+
+    /* unsubscribe from a given room / content topic */
+    public async unsubscribe(contentTopic: string) {
+        const unsub = this.contentTopicFunctions[contentTopic].unsubscribe 
+        await unsub()
+    }
+
+    /* connect to a waku node */
     public async connect() {
-        this.disconnect = await this.waku?.filter.subscribe([this.decoder], this.processIncomingMessage)
+        this.waku = await createWakuNode()
+    }
+
+    /* disconnect waku node */
+    public async disconnect() {
+        try { 
+            await this.waku?.stop()
+        } catch (e) {
+            console.log('failed to stop waku')
+        }
+        
     }
 
     /* send a message using Waku */
-    public async sendMessage(payload: Uint8Array) {
-        await this.waku?.lightPush.push(this.encoder, { payload }).then((msg) => {
+    public async sendMessage(payload: Uint8Array, contentTopic: string) {
+        if (!this.waku) {
+            throw new Error('waku not connected')
+        }
+        const encoder = this.contentTopicFunctions[contentTopic].encoder
+        await this.waku.lightPush.push(encoder, { payload }).then((msg) => {
             console.log(`Sent Encoded Message: ${msg}`)
         })
     }
@@ -152,11 +153,12 @@ class WakuConnection {
         }
     }
 
-    public async retrieveMessageStore(timePeriod?: TimePeriod) {
+    public async retrieveMessageStore(contentTopic: string, timePeriod?: TimePeriod) {
+        const decoder = this.contentTopicFunctions[contentTopic].decoder
         const {startTime, endTime } = getDates(timePeriod ?? TimePeriod.Week)
         if (!this.waku) return
         try {
-            for await (const msgPromises of this.waku.store.queryGenerator([this.decoder], {timeFilter: {startTime, endTime}})) {
+            for await (const msgPromises of this.waku.store.queryGenerator([decoder], {timeFilter: {startTime, endTime}})) {
                 const wakuMessages = await Promise.all(msgPromises)
                 const messages: ChatMessage[] = []
 

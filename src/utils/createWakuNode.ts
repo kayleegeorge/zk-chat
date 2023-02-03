@@ -1,3 +1,4 @@
+import { Protocols } from "js-waku";
 import { createLightNode } from "js-waku/lib/create_waku";
 import { WakuLight } from "js-waku/lib/interfaces";
 import { waitForRemotePeer } from "js-waku/lib/wait_for_remote_peer"
@@ -7,11 +8,11 @@ export async function createWakuNode(): Promise<WakuLight | undefined> {
     try { 
       const waku = await createLightNode({ defaultBootstrap: true })
       await waku.start()
-      await waitForRemotePeer(waku)
+      await waitForRemotePeer(waku, 
+        [Protocols.Store, Protocols.Filter, Protocols.LightPush])
       console.log('success!')
       return waku;
     } catch (e) {
       console.log("Issue creating waku", e)
     }
-    return undefined
 }

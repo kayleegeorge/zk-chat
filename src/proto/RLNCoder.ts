@@ -9,7 +9,7 @@ make writer/reader for StrBigInt[] typing compatibility
 */
 
 export namespace Pf {
-    let _codec: Codec<Proof> 
+    let _codec: Codec<Proof>
 
     export const codec = (): Codec<Proof> => {
         if (_codec == null) {

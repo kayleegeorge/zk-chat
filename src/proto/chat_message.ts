@@ -8,7 +8,6 @@ import { RLNFullProof } from "rlnjs";
 export interface ChatMessage {
     message: Uint8Array
     epoch: bigint // unix time rounded to the minute
-    roomName: string 
     rln_proof?: RLNFullProof // make non optional once rlnjs updates
     alias?: string
 }
@@ -59,15 +58,6 @@ export namespace ChatMessage {
             writer.string(obj.alias)
           }
 
-          if (obj.roomName != null) {
-            writer.uint32(42)
-            writer.string(obj.roomName)
-          } else {
-            throw new Error(
-              'Protocol error: required field "roomName" was not found in object'
-            );
-          }
-
           if (opts.lengthDelimited !== false) {
             writer.ldelim();
           }
@@ -78,7 +68,6 @@ export namespace ChatMessage {
             epoch: 0,
             rln_proof: new Uint8Array(0), // change
             alias: "",
-            roomName: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -104,9 +93,6 @@ export namespace ChatMessage {
                 break
               case 4:
                 obj.alias = reader.string()
-                break
-              case 5:
-                obj.roomName = reader.string()
                 break
               default:
                 reader.skipType(tag & 7);

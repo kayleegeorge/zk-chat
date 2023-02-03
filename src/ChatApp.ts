@@ -3,7 +3,7 @@ import { ChatRoom } from "./ChatRoom"
 import { RoomType } from "./types/ChatRoomOptions"
 import { Identity } from "@semaphore-protocol/identity"
 import { RLN } from "./RLN"
-import { Connection, ConnectionMethod } from './Connection'
+import { Connection } from './Connection'
 
 export default class ChatApp {
     public appName: string
@@ -22,7 +22,7 @@ export default class ChatApp {
         this.provider = provider
 
         this.rln = new RLN(existingIdentity, rlnIdentifier) // might need to pass provider?
-        this.connection = new Connection(ConnectionMethod.Waku, this.rln, appName) 
+        this.connection = new Connection(this.rln)
     
         this.chatRoomStore = new Map<string, ChatRoom>()
       }
@@ -52,7 +52,7 @@ export default class ChatApp {
       }
       chatRoomName += i.toString()
       if (chatMembers.length > 0) {
-        const chatroom = new ChatRoom(chatRoomName, roomType, chatMembers, this.rln, this.provider)
+        const chatroom = new ChatRoom(chatRoomName, roomType, chatMembers, this.rln, this.connection, this.provider)
         this.chatRoomStore.set(chatRoomName, chatroom)
         return chatroom
       } else {
@@ -61,8 +61,8 @@ export default class ChatApp {
     }
 
     /* fetch all chat room messages for a given chatroom */
-    public async fetchChatRoomMsgs(name: string) {
-      return this.chatRoomStore.get(name)?.getAllMessages()
+    public async fetchChatRoomMsgs(contentTopic: string) {
+      return await this.chatRoomStore.get(contentTopic)?.retrieveMessageStore(contentTopic)
     }
 
     public fetchChatRoomsNames() {

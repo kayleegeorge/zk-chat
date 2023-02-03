@@ -6,31 +6,23 @@ import { Connection } from "./Connection"
 import { RLN } from "./RLN"
 import { RLNFullProof } from "rlnjs"
 
-export type MessageStore = {
-    message: string
-    epoch: bigint
-    rlnProof: RLNFullProof | undefined
-    alias: string
-}
-
 /*
  * Create a chat room
  */
 export class ChatRoom {
     public roomType: RoomType
     public chatRoomName: string
-    public chatStore: ChatMessage[] // eventually switch to MessageStore[]
     public rlnInstance: RLN
     public provider: Web3Provider | undefined
     public connection: Connection
     private chatMembers: string[]
-    public unsubscribeWaku?: UnsubscribeFunction 
 
     public constructor(
         chatRoomName: string,
         roomType: RoomType,
         chatMembers: string[],
         rlnInstance: RLN,
+        connection: Connection,
         provider?: Web3Provider,
     ) {
         this.chatRoomName = chatRoomName
@@ -38,11 +30,12 @@ export class ChatRoom {
         this.provider = provider
         this.rlnInstance = rlnInstance
         this.chatMembers = chatMembers
+        this.connection = connection
     }
 
     /* retrieve Store Messages */
-    public async retrieveMessageStore() {
-        this.connection.retrieveMessageStore()
+    public async retrieveMessageStore(contentTopic: string) {
+        return await this.connection.retrieveMessageStore(contentTopic)
     }
     
     /* send a message */
@@ -50,13 +43,6 @@ export class ChatRoom {
         this.connection.sendMessage(text, alias, roomName)
     }
 
-    /* basic util functions */
-    public getAllMessages() {
-        return this.chatStore
-    }
-    public getLastMessage() {
-        return this.chatStore[-1]
-    }
     public async addChatMember(memPubkey: string) {
         if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
             console.error('Cannot add more than 5 members to a private group')
