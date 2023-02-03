@@ -1,8 +1,8 @@
 import { Web3Provider } from "@ethersproject/providers"
-import { RoomType } from "../types/ChatRoomOptions"
+import { RoomType } from "./types/ChatRoomOptions"
 import { UnsubscribeFunction } from "js-waku/lib/waku_filter"
-import { ChatMessage } from "../types/ChatMessage"
-import { Connection, ConnectionMethod, ProofState } from "../lib/Connection"
+import { ChatMessage } from "./types/ChatMessage"
+import { Connection } from "./Connection"
 import { RLN } from "./RLN"
 import { RLNFullProof } from "rlnjs"
 
@@ -10,7 +10,6 @@ export type MessageStore = {
     message: string
     epoch: bigint
     rlnProof: RLNFullProof | undefined
-    proofState: ProofState
     alias: string
 }
 
@@ -19,30 +18,26 @@ export type MessageStore = {
  */
 export class ChatRoom {
     public roomType: RoomType
-    public contentTopic: string
+    public chatRoomName: string
     public chatStore: ChatMessage[] // eventually switch to MessageStore[]
     public rlnInstance: RLN
-    public provider: Web3Provider 
+    public provider: Web3Provider | undefined
     public connection: Connection
     private chatMembers: string[]
     public unsubscribeWaku?: UnsubscribeFunction 
 
     public constructor(
-        contentTopic: string,
+        chatRoomName: string,
         roomType: RoomType,
-        provider: Web3Provider,
         chatMembers: string[],
         rlnInstance: RLN,
+        provider?: Web3Provider,
     ) {
-        this.contentTopic = contentTopic
+        this.chatRoomName = chatRoomName
         this.roomType = roomType
         this.provider = provider
         this.rlnInstance = rlnInstance
         this.chatMembers = chatMembers
-        this.chatStore = []
-
-        // need to update Chat Store
-        this.connection = new Connection(ConnectionMethod.Waku, this.rlnInstance, updateChatStore, this.contentTopic) 
     }
 
     /* retrieve Store Messages */
@@ -51,21 +46,8 @@ export class ChatRoom {
     }
     
     /* send a message */
-    public async sendMessage(text: string, alias: string) {
-        this.connection.sendMessage(text, alias)
-    }
-
-    /* clean up message store rln proofs after n epochs */
-    public async cleanMessageStore(n: number) {
-        let msgIndex = -1
-        const time = new Date()
-        const curTime = BigInt(Math.floor(time.valueOf() / 1000))
-        // TODO: destroy rln proof after n epochs
-
-        // while(this.chatStore[msgIndex].epoch - curTime > n) {
-        //    this.chatStore[msgIndex].rln_proof = undefined 
-        //    msgIndex += 1 
-        // } 
+    public async sendMessage(text: string, alias: string, roomName: string) {
+        this.connection.sendMessage(text, alias, roomName)
     }
 
     /* basic util functions */

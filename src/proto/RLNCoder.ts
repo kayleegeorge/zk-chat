@@ -1,4 +1,4 @@
-import { RLNFullProof, Proof, StrBigInt } from "rlnjs";
+import { RLNFullProof, Proof } from "rlnjs";
 import type { Codec } from "protons-runtime";
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
 import { RLNPublicSignals } from "rlnjs";

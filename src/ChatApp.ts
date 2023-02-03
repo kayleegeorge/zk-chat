@@ -1,14 +1,16 @@
 import { Web3Provider } from '@ethersproject/providers'
 import { ChatRoom } from "./ChatRoom"
-import { RoomType } from "../types/ChatRoomOptions"
+import { RoomType } from "./types/ChatRoomOptions"
 import { Identity } from "@semaphore-protocol/identity"
 import { RLN } from "./RLN"
+import { Connection, ConnectionMethod } from './Connection'
 
 export default class ChatApp {
     public appName: string
     public chatRoomStore: Map<string, ChatRoom>
     public rln: RLN
     public provider: Web3Provider | undefined
+    public connection: Connection
 
     public constructor(
         appName: string,
@@ -16,9 +18,11 @@ export default class ChatApp {
         existingIdentity?: string,
         rlnIdentifier?: bigint
       ) {
-        this.appName = appName
+        this.appName = appName // also contentTopic for Waku connection
         this.provider = provider
-        this.rln = new RLN(existingIdentity, rlnIdentifier, provider)
+
+        this.rln = new RLN(existingIdentity, rlnIdentifier) // might need to pass provider?
+        this.connection = new Connection(ConnectionMethod.Waku, this.rln, appName) 
     
         this.chatRoomStore = new Map<string, ChatRoom>()
       }
@@ -32,23 +36,24 @@ export default class ChatApp {
     }
 
     /* app-level user registration: add user to chatApp and RLN registry */
-    public async registerUser(existingIdentity?: string) {
-      if (!this.provider) return 
+    public async registerUser() {
       this.rln.constructRLNMemberTree() 
-      await this.rln.registerUserOnRLNContract(this.provider) // TODO: maybe this not needed? investigate
-      return this.rln.identity
+      if (this.provider) await this.rln.registerUserOnRLNContract(this.provider) // TODO: maybe this not needed? investigate
+      return this.rln.rlnjs.identity
     }
 
     /* create chat room */
-    public createChatRoom(name: string, roomType: RoomType, identity: string, chatMembers: string[]) {
-      const contentTopic = `/${this.appName}/0.0.1/${roomType}-${name}/proto/`
-      if (contentTopic in this.chatRoomStore) {
-        console.log('Error: Please choose different chat name.')
+    public createChatRoom(name: string, roomType: RoomType, chatMembers: string[]) {
+      let chatRoomName = `/${this.appName}/${roomType}-${name}/`
+      // no duplicate chat room names
+      let i = 0
+      while (chatRoomName + i.toString() in this.chatRoomStore) {
+        i += 1
       }
-      if (chatMembers) {
-        if (!this.provider) return 
-        const chatroom = new ChatRoom(contentTopic, roomType, this.provider, chatMembers, this.rln)
-        this.chatRoomStore.set(contentTopic, chatroom)
+      chatRoomName += i.toString()
+      if (chatMembers.length > 0) {
+        const chatroom = new ChatRoom(chatRoomName, roomType, chatMembers, this.rln, this.provider)
+        this.chatRoomStore.set(chatRoomName, chatroom)
         return chatroom
       } else {
         console.log("You must register as a user before creating a chat room.")

@@ -1,5 +1,5 @@
-import ChatApp from './lib/ChatApp'
-import { ChatRoom } from './lib/ChatRoom'
-import { RLN } from './lib/RLN'
+import ChatApp from './ChatApp'
+import { ChatRoom } from './ChatRoom'
+import { RLN } from './RLN'
 export { ChatApp, ChatRoom, RLN }
 

@@ -10,12 +10,16 @@ export function getDates(timePeriod: TimePeriod) {
     switch(timePeriod) {
         case TimePeriod.Hour:
             startTime.setTime(Date.now() - 1000 * 60 * 60 * 1)
+            break
         case TimePeriod.Day:
             startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 1)
+            break
         case TimePeriod.Week:
             startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 7)
+            break
         case TimePeriod.Month:
             startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 31)
+            break
     }
     
     const endTime = new Date();

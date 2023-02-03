@@ -1,6 +1,6 @@
-import { bytesToUtf8, utf8ToBytes } from "zkchat/utils/formatting"
+import { bytesToUtf8, utf8ToBytes } from "../utils/formatting"
 import { RLNFullProof } from "rlnjs"
-import * as proto from "zkchat/proto/chat_message"
+import * as proto from "../proto/chat_message"
 
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}
@@ -9,6 +9,7 @@ export class ChatMessage {
   static fromUtf8String(
     text: string,
     epoch: bigint,
+    roomName: string,
     rln_proof: RLNFullProof,
     alias?: string
   ): ChatMessage {
@@ -17,6 +18,7 @@ export class ChatMessage {
     return new ChatMessage({
         message, 
         epoch,
+        roomName,
         rln_proof,
         alias
     })
@@ -57,6 +59,10 @@ export class ChatMessage {
 
   get message(): string {
     return bytesToUtf8(this.proto.message)
+  }
+  
+  get roomName(): string {
+    return this.roomName
   }
 
   get rln_proof(): RLNFullProof | undefined {

@@ -1,10 +1,9 @@
-import { GOERLI } from "../utils/checkChain";
+import { GOERLI } from "./utils/checkChain";
 import { genExternalNullifier, Registry, RLN as RLNjs, RLNFullProof, Cache} from "rlnjs" 
 import { Contract, ethers } from "ethers";
-import { RLN_ABI, RLN_ADDRESS } from "../rln/contractInfo";
+import { RLN_ABI, RLN_ADDRESS } from "./rln/contractInfo";
 import { Web3Provider } from "@ethersproject/providers";
 import * as path from 'path'
-import { Identity } from '@semaphore-protocol/identity';
 import * as fs from 'fs'
 
 /* needed file paths */
@@ -17,27 +16,25 @@ export class RLN {
     public registry: Registry
     public identityCommitments: bigint[]
     public contract: Contract
-    public rlnInstance: RLNjs
+    public rlnjs: RLNjs
     public cache: Cache
-    public identity: Identity
     public rlnIdentifier: bigint
     private identityCommitment: bigint
-    private memIndex: number
+    // private memIndex: number
 
-    constructor(existingIdentity?: string, rlnIdentifier?: bigint, provider?: ethers.providers.Provider) {
+    constructor(existingIdentity?: string, rlnIdentifier?: bigint) {
         // RLN
         this.contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI) // might need to add back provider
         this.registry = new Registry()
-        this.rlnInstance = new RLNjs(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity)
-        this.identity = this.rlnInstance.identity
-        this.rlnIdentifier = this.rlnInstance.rlnIdentifier
+        this.rlnjs = new RLNjs(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity)
+        this.rlnIdentifier = this.rlnjs.rlnIdentifier
         this.identityCommitments = []
-        this.cache = new Cache(this.rlnInstance.rlnIdentifier)
+        this.cache = new Cache(this.rlnjs.rlnIdentifier)
 
         // RLN member
-        this.identityCommitment = this.identity.getCommitment() 
+        this.identityCommitment = this.rlnjs.identity.getCommitment() 
         this.registry.addMember(this.identityCommitment)
-        this.memIndex = this.registry.indexOf(this.identityCommitment)
+        // this.memIndex = this.registry.indexOf(this.identityCommitment)
     }
 
     public async verifyProof(rlnProof: RLNFullProof) {
@@ -45,14 +42,14 @@ export class RLN {
     }
 
     public getIdentityAsString() {
-      return this.identity.toString()
+      return this.rlnjs.identity.toString()
     }
 
     // generateProof 
     public async generateRLNProof(msg: string, epoch: bigint) {
       const epochNullifier = genExternalNullifier(epoch.toString())
       const merkleProof = await this.registry.generateMerkleProof(this.identityCommitment)
-      const proof = this.rlnInstance.generateProof(msg, merkleProof, epochNullifier)
+      const proof = this.rlnjs.generateProof(msg, merkleProof, epochNullifier)
       return proof
     }
 
@@ -84,7 +81,7 @@ export class RLN {
       const txReceipt = await txResponse.wait()
       console.log("Transaction receipt", txReceipt)
 
-      this.memIndex = txReceipt.events[0].args.index.toNumber()
+      // this.memIndex = txReceipt.events[0].args.index.toNumber()
     }
 
     /* handle adding proof to cache */
@@ -103,9 +100,9 @@ export class RLN {
     public generateRLNcredentials(appName: string) {
       return { 
         "application": appName, 
-        "appIdentifier": this.rlnInstance.rlnIdentifier,
+        "appIdentifier": this.rlnjs.rlnIdentifier,
         "credentials": [{
-          "key": this.identity.getNullifier(),
+          "key": this.rlnjs.identity.getNullifier(),
           "commitment": this.identityCommitment,
           "membershipGroups": [{
             "chainId": GOERLI, // chainge to optimism when time

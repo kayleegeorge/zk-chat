@@ -6,6 +6,7 @@ message ChatMessage {
   optional uint64 epoch = 2; // unix time rounded to the minute
   optional Bytes rln_proof = 3;
   optional string alias = 4;
+  optional string roomName = 5;
 }
 
 message RLNFullProof {

@@ -1,5 +1,3 @@
-const { ethers } = require("hardhat")
-const { assert } = require("chai")
 require("@nomicfoundation/hardhat-chai-matchers")
 
 describe("Rln", function () {
@@ -28,7 +26,7 @@ describe("Rln", function () {
     const txRegisterReceipt = await res_register.wait();
 
     const reg_pubkey =  txRegisterReceipt.events[0].args.memPubkey;
-    // const reg_tree_index =  txRegisterReceipt.events[0].args.index;
+    const reg_tree_index =  txRegisterReceipt.events[0].args.index;
 
     // We ensure the registered id_commitment is the one we passed
     assert(reg_pubkey.toHexString() === id_commitment, "registered commitment doesn't match passed commitment");
@@ -68,7 +66,6 @@ describe("Rln", function () {
     const id_commitment = "0x0c3ac305f6a4fe9bfeb3eba978bc876e2a99208b8b56c80160cfb54ba8f02368"
 
     await rln.register(id_commitment, {value: price});
-    // expect(rln.register(id_commitment, {value: price})).to.be.revertedWith("RLN, register: pubkey already registered");
-    
+    // expect(rln.register(id_commitment, {value: price})).to.be.revertedWith("RLN, register: pubkey already registered");    
   });
 });

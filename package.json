@@ -41,6 +41,7 @@
     "rlnjs": "github:Rate-Limiting-Nullifier/rlnjs#refactor/v2"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.20.2",
     "@babel/preset-typescript": "^7.18.6",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
     "@nomiclabs/hardhat-ethers": "^2.2.1",

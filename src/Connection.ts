@@ -1,24 +1,17 @@
-import { createLibp2p } from "../utils/createLibp2p"
+import { createLibp2p } from "./utils/createLibp2p"
 import { WakuLight } from "js-waku/lib/interfaces";
 import { UnsubscribeFunction } from "js-waku/lib/waku_filter";
 import { RLN } from "./RLN";
-import { ChatMessage } from "../types/ChatMessage";
-import { dateToEpoch, utf8ToBytes } from "../utils/formatting";
+import { ChatMessage } from "./types/ChatMessage";
+import { dateToEpoch, utf8ToBytes } from "./utils/formatting";
 import { DecoderV0, EncoderV0, MessageV0 } from "js-waku/lib/waku_message/version_0";
 import { Libp2pOptions } from "libp2p/src/index";
 import { Libp2pNode } from "libp2p/dist/src/libp2p";
-import { getDates, TimePeriod } from "../utils/getDates";
+import { getDates, TimePeriod } from "./utils/getDates";
 
 export enum ConnectionMethod {
     Libp2p = "libp2p",
     Waku = "waku"
-}
-
-export enum ProofState {
-    none = 'none',
-    processing = 'processing',
-    verified = 'verified',
-    invalid = 'invalid'
 }
 
 export class Connection {
@@ -28,13 +21,13 @@ export class Connection {
 
     constructor(connectionMethod: ConnectionMethod, 
                 rlnInstance: RLN, 
-                updateChatStore: (value: ChatMessage[]) => void,
-                wakuContentTopic: string, // change to optional 
+                // updateChatStore: (value: ChatMessage[]) => void, // don't 
+                wakuContentTopic: string, 
                 libp2pOptions?: Libp2pOptions) {
         this.connectionMethod = connectionMethod
         this.rlnInstance = rlnInstance
         // default Waku
-        this.connectionInstance = new WakuConnection(wakuContentTopic, rlnInstance, updateChatStore)
+        this.connectionInstance = new WakuConnection(wakuContentTopic, rlnInstance)
 
         if (this.connectionMethod == ConnectionMethod.Libp2p) {
             this.connectionInstance = new Libp2pConnection(libp2pOptions)
@@ -50,7 +43,7 @@ export class Connection {
     }
 
     /* send message by encoding to protobuf -> payload for waku message */ 
-    public async sendMessage(text: string, alias: string) {
+    public async sendMessage(text: string, alias: string, roomName: string) {
         const date = new Date()
 
         const rawMessage = { message: text, epoch: dateToEpoch(date)} 
@@ -59,9 +52,11 @@ export class Connection {
         const protoMsg = new ChatMessage({
             message: utf8ToBytes(text),
             epoch: dateToEpoch(date), 
-            alias
+            rln_proof: rln_proof,
+            roomName,
+            alias,
         })
-        const payload = protoMsg.encode()
+        const payload = protoMsg.encode() // encode to proto
         this.connectionInstance.sendMessage(payload)
     }
 
@@ -103,16 +98,18 @@ class WakuConnection {
     public waku: WakuLight | undefined
     public disconnect: UnsubscribeFunction | undefined
     public updateChatStore: (value: ChatMessage[]) => void
+    public chatStore: ChatMessage[] // store 
     private decoder: DecoderV0
     private encoder: EncoderV0
-    private contentTopic: string
+    private contentTopic: string 
     private rlnInstance: RLN
     // private ChatStore: ProofStore[]
 
-    constructor(contentTopic: string, rlnInstance: RLN, updateChatStore: (value: ChatMessage[]) => void) {
-        this.contentTopic = contentTopic
+    // updateChatStore: (value: ChatMessage[]) => void
+    constructor(contentTopic: string, rlnInstance: RLN) {
+        this.contentTopic = contentTopic // will apply to all of 'zk-chat' --> zk chat 
         this.rlnInstance = rlnInstance
-        this.updateChatStore = updateChatStore
+        // this.updateChatStore = updateChatStore
         this.decoder = new DecoderV0(this.contentTopic)
         this.encoder = new EncoderV0(this.contentTopic)
     }
@@ -138,20 +135,16 @@ class WakuConnection {
             const { message, epoch, rln_proof, alias } = chatMessage
             const timestamp = new Date().setTime(Number(epoch) * 1000)
     
-            let proofState, proofResult
+            let proofResult
             if (!rln_proof) {
                 console.log('No Proof with Message')
-                proofState = ProofState.none
             } else {
-                proofState = ProofState.processing
                 console.log(`Proof attached: ${rln_proof}`)
                 proofResult = await this.rlnInstance.verifyProof(rln_proof)
                 if (proofResult) {
-                    proofState = ProofState.verified
                     this.updateChatStore([chatMessage])
+                    this.rlnInstance.addProofToCache(rln_proof) // add proof to RLN cache on success
                 }
-                // TODO: at some point, add proofs to a proof store with state
-                // return { message, epoch, rln_proof, proofState }
             }
             console.log(`Message Received from ${alias}: ${message}, sent at ${timestamp}`)
         } catch(e) {

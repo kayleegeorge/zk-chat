@@ -4,7 +4,7 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 
-async function deploy() {
+async function main() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
   //
@@ -30,7 +30,7 @@ async function deploy() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-deploy().catch((error) => {
+main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
