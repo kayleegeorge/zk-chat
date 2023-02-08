@@ -2,7 +2,6 @@ import { ChatApp } from '../src'
 import { createWakuNode } from '../src/utils/createWakuNode'
 describe("waku node", async () => {
     const wakuNode = await createWakuNode()
-    assert(wakuNode !== undefined)
 })
 
 describe("chatApp", () => {

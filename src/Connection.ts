@@ -73,7 +73,7 @@ export class Connection {
 class WakuConnection {
     public waku: WakuLight | undefined
     public contentTopicFunctions: Map<string, ContentTopicFunctions>
-    public updateChatStore: (value: ChatMessage[]) => void
+    // public updateChatStore: (value: ChatMessage[]) => void
     // public chatStore: ChatMessage[] // store 
     private rlnInstance: RLN
 
@@ -129,7 +129,7 @@ class WakuConnection {
     /* process incoming received message and proof */
     public async processIncomingMessage(msgBuf: MessageV0) { // TODO get typing correct
         if (!msgBuf.payload) return
-        const chatMessage = ChatMessage.decodeMessage(msgBuf)
+        const chatMessage = ChatMessage.decodeMessage(msgBuf.payload)
         if (!chatMessage) return
         
         try {
@@ -143,7 +143,7 @@ class WakuConnection {
                 console.log(`Proof attached: ${rln_proof}`)
                 proofResult = await this.rlnInstance.verifyProof(rln_proof)
                 if (proofResult) {
-                    this.updateChatStore([chatMessage])
+                    /// this.updateChatStore([chatMessage])
                     this.rlnInstance.addProofToCache(rln_proof) // add proof to RLN cache on success
                 }
             }
@@ -165,7 +165,7 @@ class WakuConnection {
                 wakuMessages.map((wakuMsg) => ChatMessage.decodeMessage(wakuMsg))
                 .forEach((msg) => {if (msg) { messages.push(msg) }})
                 
-                this.updateChatStore(messages)
+                // this.updateChatStore(messages)
             }
         } catch (e) {
             console.log("Failed to retrieve messages", e);

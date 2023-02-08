@@ -22,7 +22,7 @@ export class ChatMessage {
     })
   }
 
-    // TODO: which type of message is the Waku sending
+    /* decodes received msg payload */
     static decodeMessage(wakuMsg: any): ChatMessage | undefined {
       if (wakuMsg.payload) {
         try {
@@ -57,10 +57,6 @@ export class ChatMessage {
 
   get message(): string {
     return bytesToUtf8(this.proto.message)
-  }
-  
-  get roomName(): string {
-    return this.roomName
   }
 
   get rln_proof(): RLNFullProof | undefined {

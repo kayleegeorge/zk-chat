@@ -4,6 +4,7 @@ import { RoomType } from "./types/ChatRoomOptions"
 import { Identity } from "@semaphore-protocol/identity"
 import { RLN } from "./RLN"
 import { Connection } from './Connection'
+import { randomBytes } from 'crypto'
 
 export default class ChatApp {
     public appName: string
@@ -44,7 +45,15 @@ export default class ChatApp {
 
     /* create chat room */
     public createChatRoom(name: string, roomType: RoomType, chatMembers: string[]) {
-      let chatRoomName = `/${this.appName}/${roomType}-${name}/`
+      // assign content topic/chatRoomName depending on group type
+      let chatRoomName = ""
+      if (roomType == RoomType.PrivGroup) {
+        chatRoomName = `/${this.appName}/${roomType}-${name}/`
+      } else {
+        const roomKey = randomBytes(20).toString('hex')
+        chatRoomName = `/${this.appName}/${roomType}-${roomKey}/`
+      }
+
       // no duplicate chat room names
       let i = 0
       while (chatRoomName + i.toString() in this.chatRoomStore) {

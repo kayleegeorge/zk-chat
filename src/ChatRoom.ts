@@ -4,7 +4,6 @@ import { UnsubscribeFunction } from "js-waku/lib/waku_filter"
 import { ChatMessage } from "./types/ChatMessage"
 import { Connection } from "./Connection"
 import { RLN } from "./RLN"
-import { RLNFullProof } from "rlnjs"
 
 /*
  * Create a chat room

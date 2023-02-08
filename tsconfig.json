@@ -1,28 +1,28 @@
 {
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./lib/",
-    "target": "ES6",
-    "module": "esnext",
-    "noUnusedLocals": false,
-    "noUnusedParameters": true,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "moduleResolution": "Node",
-    "typeRoots": [
-      "node_modules/@types",
-      "src/types",
+    "compilerOptions": {
+      "rootDir": "./src",
+      "outDir": "./lib/",
+      "target": "ES6",
+      "module": "esnext",
+      "noUnusedLocals": false,
+      "noUnusedParameters": true,
+      "noImplicitReturns": false,
+      "noFallthroughCasesInSwitch": true,
+      "forceConsistentCasingInFileNames": true,
+      "inlineSourceMap": true,
+      "inlineSources": true,
+      "esModuleInterop": true,
+      "declaration": true,
+      "moduleResolution": "Node",
+      "typeRoots": [
+        "node_modules/@types",
+        "src/types",
+      ]
+    },
+    "include": [
+      "src/**/*.ts"
     ],
-  },
-  "include": [
-    "src",
-  ],
-  "exclude": [
-    "node_modules",
-  ]
+    "exclude": [
+      "node_modules",
+    ]
 }
