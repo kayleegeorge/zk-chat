@@ -15,17 +15,19 @@ const finalZkeyPath = path.join("./zkeyFiles", "rln", "rln_final.zkey")
 export class RLN {
     public registry: Registry
     public identityCommitments: bigint[]
+    public onChain: boolean
     public contract: Contract
     public rlnjs: RLNjs
     public cache: Cache
     public rlnIdentifier: bigint
     private identityCommitment: bigint
-    // private memIndex: number
 
-    constructor(existingIdentity?: string, rlnIdentifier?: bigint) {
+    constructor(onChain: boolean, existingIdentity?: string, rlnIdentifier?: bigint) {
         // RLN
-        this.contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI) // might need to add back provider
         this.registry = new Registry()
+        this.onChain = onChain
+
+        this.contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI) // might need to add back provider
         this.rlnjs = new RLNjs(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity)
         this.rlnIdentifier = this.rlnjs.rlnIdentifier
         this.identityCommitments = []
@@ -34,18 +36,19 @@ export class RLN {
         // RLN member
         this.identityCommitment = this.rlnjs.identity.getCommitment() 
         this.registry.addMember(this.identityCommitment)
-        // this.memIndex = this.registry.indexOf(this.identityCommitment)
     }
 
+    /* RLN proof verification */
     public async verifyProof(rlnProof: RLNFullProof) {
       return await RLNjs.verifyProof(vkey, rlnProof)
     }
 
+    /* returns rln member Identity as a string */
     public getIdentityAsString() {
       return this.rlnjs.identity.toString()
     }
 
-    // generateProof 
+    /* generate RLN proof */
     public async generateRLNProof(msg: string, epoch: bigint) {
       const epochNullifier = genExternalNullifier(epoch.toString())
       const merkleProof = await this.registry.generateMerkleProof(this.identityCommitment)
@@ -71,6 +74,9 @@ export class RLN {
 
     /* Allow new user registraction with rln contract for rln registry */
     public async registerUserOnRLNContract(provider: Web3Provider) {
+      // check first that app is onChain level
+      assert(this.onChain)
+
       const price = await this.contract.MEMBERSHIP_DEPOSIT()
       const signer = provider.getSigner()
 
@@ -91,8 +97,12 @@ export class RLN {
       // if breached, slash the member id commitment
       if ("breach") {
         this.registry.slashMember(result.secret) 
-        const withdrawRes = this.contract.withdraw(result.secret) // might need to add payable receiver
-        console.log("member withdrawn: ", withdrawRes)
+        console.log("member withdrawn: ", result.secret)
+
+        // if on chain, slash on contract
+        if (this.onChain) {
+          const withdrawRes = this.contract.withdraw(result.secret) // might need to add payable receiver
+        }
       }
     }
 

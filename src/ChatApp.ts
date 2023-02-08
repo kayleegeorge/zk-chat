@@ -12,34 +12,38 @@ export default class ChatApp {
     public rln: RLN
     public provider: Web3Provider | undefined
     public connection: Connection
+    public onChain: boolean
 
     public constructor(
         appName: string,
+        onChain: boolean,
         provider?: Web3Provider,
         existingIdentity?: string,
         rlnIdentifier?: bigint
       ) {
-        this.appName = appName // also contentTopic for Waku connection
-        this.provider = provider
+        this.appName = appName 
+        this.onChain = onChain // boolean if interacting on chain or not
 
-        this.rln = new RLN(existingIdentity, rlnIdentifier) // might need to pass provider?
+        this.provider = provider
+        this.rln = new RLN(onChain, existingIdentity, rlnIdentifier) // might need to pass provider?
         this.connection = new Connection(this.rln)
     
         this.chatRoomStore = new Map<string, ChatRoom>()
       }
 
-    // ref: https://semaphore.appliedzkp.org/docs/guides/identities
     /* identity generation without RLN */
+    // ref: https://semaphore.appliedzkp.org/docs/guides/identities
     public createIdentity() {
       const identity = new Identity()
-      console.log(identity)
       return identity
     }
 
     /* app-level user registration: add user to chatApp and RLN registry */
     public async registerUser() {
-      this.rln.constructRLNMemberTree() 
+      if (this.onChain) {
+        this.rln.constructRLNMemberTree() 
       if (this.provider) await this.rln.registerUserOnRLNContract(this.provider) // TODO: maybe this not needed? investigate
+      }
       return this.rln.rlnjs.identity
     }
 
@@ -74,6 +78,7 @@ export default class ChatApp {
       return await this.chatRoomStore.get(contentTopic)?.retrieveMessageStore(contentTopic)
     }
 
+    /* all chat rooms that one is part of */ 
     public fetchChatRoomsNames() {
       return Array.from(this.chatRoomStore.keys())
     }
