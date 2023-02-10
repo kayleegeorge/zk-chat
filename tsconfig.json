@@ -1,28 +1,21 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./lib/",
-    "target": "ES6",
-    "module": "esnext",
-    "noUnusedLocals": false,
+    "target": "ES5",
+    "module": "ES6",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
     "forceConsistentCasingInFileNames": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
+    "sourceMap": true,
     "esModuleInterop": true,
     "declaration": true,
-    "moduleResolution": "Node",
-    "typeRoots": [
-      "node_modules/@types",
-      "src/types",
-    ],
-  },
-  "include": [
-    "src",
-  ],
-  "exclude": [
-    "node_modules",
-  ]
+    "declarationDir": "./dist/types",
+    "strict": true
+  }
 }
