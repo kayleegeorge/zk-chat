@@ -41,18 +41,34 @@ export namespace ChatMessage {
             )
           }
 
-    // TODO: which type of message is the Waku sending
-    static decodeMessage(wakuMsg: any): ChatMessage | undefined {
-      if (wakuMsg.payload) {
-        try {
-          return ChatMessage.decode(wakuMsg.payload)
-        } catch (e) {
-          console.error("Failed to decode chat message", e)
-        }
-      }
-    }
-    return
-  }
+          // TODO: fix writer type here
+          if (obj.rlnProof != null) {
+            writer.uint32(26)
+            // RateLimitProof.codec().encode(obj.rateLimitProof, writer);
+
+          }
+          // else {
+          //   throw new Error(
+          //     'Protocol error: required field "rln_proof" was not found in object'
+          //   )
+          // }
+
+          if (obj.alias != null) {
+            writer.uint32(34)
+            writer.string(obj.alias)
+          }
+
+          if (opts.lengthDelimited !== false) {
+            writer.ldelim()
+          }
+        },
+        (reader, length) => {
+          const obj: any = {
+            message: new Uint8Array(0),
+            epoch: 0,
+            rln_proof: new Uint8Array(0), // change
+            alias: '',
+          }
 
           const end = length == null ? reader.len : reader.pos + length
 

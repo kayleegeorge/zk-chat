@@ -14,7 +14,7 @@ const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 
 export class RLN {
   public registry: Registry
-d
+
   public identityCommitments: bigint[]
 
   public contract: Contract

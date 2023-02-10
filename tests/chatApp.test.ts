@@ -8,7 +8,7 @@ describe("waku node", async () => {
 })
 
 describe("chatApp", () => {
-    const app = new ChatApp('test-app')
+    const app = new ChatApp('test-app', false)
     const rlnIdentifier = app.rln.rlnIdentifier
     //const rlnMem = app.rln.rlnjs.identity
     test("Expect Waku Node to be an object", async () => {

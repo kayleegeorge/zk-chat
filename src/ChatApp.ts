@@ -17,9 +17,11 @@ export default class ChatApp {
 
   public connection: Connection
 
+  public onChain: boolean
+
   public constructor(
     appName: string,
-    
+    onChain: boolean,
     provider?: Web3Provider,
     existingIdentity?: string,
     rlnIdentifier?: bigint,
@@ -27,7 +29,7 @@ export default class ChatApp {
     this.appName = appName // also contentTopic for Waku connection
     this.provider = provider
     rlnIdentifier = rlnIdentifier ? rlnIdentifier : generateAppIdentifier(appName)
-    this.rln = new RLN(existingIdentity, rlnIdentifier) // might need to pass provider?
+    this.rln = new RLN(onChain, existingIdentity, rlnIdentifier) // might need to pass provider?
     this.connection = new Connection(this.rln)
 
     this.chatRoomStore = new Map<string, ChatRoom>()
