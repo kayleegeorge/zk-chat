@@ -1,69 +1,137 @@
-import { bytesToUtf8, utf8ToBytes } from "../utils/formatting"
-import { RLNFullProof } from "rlnjs"
-import * as proto from "../proto/chat_message"
+/* eslint-disable import/export */
 
-export class ChatMessage {
-  public constructor(public proto: proto.ChatMessage) {}
+import { encodeMessage, decodeMessage, message } from 'protons-runtime'
+import type { Uint8ArrayList } from 'uint8arraylist'
+import type { Codec } from 'protons-runtime'
+import { RLNFullProof } from 'rlnjs'
 
-  /* Create Chat Message with a utf-8 string as payload. */
-  static fromUtf8String(
-    text: string,
-    epoch: bigint,
-    rln_proof: RLNFullProof,
-    alias?: string
-  ): ChatMessage {
-    const message = utf8ToBytes(text)
+export interface ChatMessage {
+  message: Uint8Array
+  epoch: bigint // unix time rounded to the minute
+  rlnProof?: RLNFullProof // make non optional once rlnjs updates
+  alias?: string
+}
 
-    return new ChatMessage({
-        message, 
-        epoch,
-        rln_proof,
-        alias
-    })
-  }
+export namespace ChatMessage {
+  let _codec: Codec<ChatMessage>
 
-    /* decodes received msg payload */
-    static decodeMessage(wakuMsg: any): ChatMessage | undefined {
-      if (wakuMsg.payload) {
-        try {
-          return ChatMessage.decode(wakuMsg.payload)
-        } catch (e) {
-          console.error("Failed to decode chat message", e)
-        }
-      }
-      return;
+  export const codec = (): Codec<ChatMessage> => {
+    if (_codec == null) {
+      _codec = message<ChatMessage>(
+        (obj, writer, opts = {}) => {
+          if (opts.lengthDelimited !== false) {
+            writer.fork()
+          }
+
+          if (obj.message != null) {
+            writer.uint32(10)
+            writer.bytes(obj.message)
+          } else {
+            throw new Error(
+              'Protocol error: required field "message" was not found in object',
+            )
+          }
+
+          if (obj.epoch != null) {
+            writer.uint32(18)
+            writer.uint64(obj.epoch)
+          } else {
+            throw new Error(
+              'Protocol error: required field "epoch" was not found in object',
+            )
+          }
+
+          // TODO: fix writer type here
+          if (obj.rlnProof != null) {
+            writer.uint32(26)
+            // RateLimitProof.codec().encode(obj.rateLimitProof, writer);
+
+          }
+          // else {
+          //   throw new Error(
+          //     'Protocol error: required field "rln_proof" was not found in object'
+          //   )
+          // }
+
+          if (obj.alias != null) {
+            writer.uint32(34)
+            writer.string(obj.alias)
+          }
+
+          if (opts.lengthDelimited !== false) {
+            writer.ldelim()
+          }
+        },
+        (reader, length) => {
+          const obj: any = {
+            message: new Uint8Array(0),
+            epoch: 0,
+            rln_proof: new Uint8Array(0), // change
+            alias: '',
+          }
+
+          const end = length == null ? reader.len : reader.pos + length
+
+          while (reader.pos < end) {
+            const tag = reader.uint32()
+
+            switch (tag >>> 3) {
+              case 1:
+                obj.message = reader.string()
+                break
+              case 2:
+                obj.epoch = reader.uint64()
+                break
+              case 3:
+                obj.rln_proof = reader.bytes()
+                /*
+                  obj.rateLimitProof = RateLimitProof.codec().decode(
+                  reader,
+                  reader.uint32()
+                );
+                */
+                break
+              case 4:
+                obj.alias = reader.string()
+                break
+              default:
+                reader.skipType(tag & 7)
+                break
+            }
+          }
+
+          if (obj.epoch == null) {
+            throw new Error(
+              'Protocol error: value for required field "epoch" was not found in protobuf',
+            )
+          }
+
+          if (obj.rln_proof == null) {
+            // throw new Error(
+            //   'Protocol error: value for required field "rln_proof" was not found in protobuf'
+            // );
+            console.log('no rln proof attached')
+          }
+
+          if (obj.message == null) {
+            throw new Error(
+              'Protocol error: value for required field "message" was not found in protobuf',
+            )
+          }
+
+          return obj
+        },
+      )
     }
 
-  /**
-   * Decode a protobuf payload to a ChatMessage.
-   * @param bytes The payload to decode.
-   */
-  static decode(bytes: Uint8Array): ChatMessage {
-    const protoMsg = proto.ChatMessage.decode(bytes);
-    return new ChatMessage(protoMsg);
+    return _codec
   }
 
-  /**
-   * Encode this ChatMessage to a byte array, to be used as a protobuf payload.
-   * @returns The encoded payload.
-   */
-  encode(): Uint8Array {
-    return proto.ChatMessage.encode(this.proto);
+  export const encode = (obj: ChatMessage): Uint8Array => {
+    return encodeMessage(obj, ChatMessage.codec())
   }
 
-  get epoch(): bigint {
-    return this.epoch
-  }
-
-  get message(): string {
-    return bytesToUtf8(this.proto.message)
-  }
-
-  get rln_proof(): RLNFullProof | undefined {
-    return this.proto.rln_proof
-  }
-
-  get alias(): string | undefined {
-    return this.alias ?? ""
+  export const decode = (buf: Uint8Array | Uint8ArrayList): ChatMessage => {
+    return decodeMessage(buf, ChatMessage.codec())
   }
 }
