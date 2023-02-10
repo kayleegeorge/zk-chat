@@ -1,26 +1,26 @@
 /* eslint-disable import/export */
 
-import { encodeMessage, decodeMessage, message } from "protons-runtime";
-import type { Uint8ArrayList } from "uint8arraylist";
-import type { Codec } from "protons-runtime";
-import { RLNFullProof } from "rlnjs";
+import { encodeMessage, decodeMessage, message } from 'protons-runtime'
+import type { Uint8ArrayList } from 'uint8arraylist'
+import type { Codec } from 'protons-runtime'
+import { RLNFullProof } from 'rlnjs'
 
 export interface ChatMessage {
-    message: Uint8Array
-    epoch: bigint // unix time rounded to the minute
-    rln_proof?: RLNFullProof // make non optional once rlnjs updates
-    alias?: string
+  message: Uint8Array
+  epoch: bigint // unix time rounded to the minute
+  rlnProof?: RLNFullProof // make non optional once rlnjs updates
+  alias?: string
 }
 
 export namespace ChatMessage {
-  let _codec: Codec<ChatMessage>;
+  let _codec: Codec<ChatMessage>
 
   export const codec = (): Codec<ChatMessage> => {
     if (_codec == null) {
       _codec = message<ChatMessage>(
         (obj, writer, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            writer.fork()
           }
 
           if (obj.message != null) {
@@ -28,8 +28,8 @@ export namespace ChatMessage {
             writer.bytes(obj.message)
           } else {
             throw new Error(
-              'Protocol error: required field "message" was not found in object'
-            );
+              'Protocol error: required field "message" was not found in object',
+            )
           }
 
           if (obj.epoch != null) {
@@ -37,16 +37,16 @@ export namespace ChatMessage {
             writer.uint64(obj.epoch)
           } else {
             throw new Error(
-              'Protocol error: required field "epoch" was not found in object'
-            );
+              'Protocol error: required field "epoch" was not found in object',
+            )
           }
 
           // TODO: fix writer type here
-          if (obj.rln_proof != null) {
+          if (obj.rlnProof != null) {
             writer.uint32(26)
             // RateLimitProof.codec().encode(obj.rateLimitProof, writer);
 
-          } 
+          }
           // else {
           //   throw new Error(
           //     'Protocol error: required field "rln_proof" was not found in object'
@@ -59,7 +59,7 @@ export namespace ChatMessage {
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            writer.ldelim()
           }
         },
         (reader, length) => {
@@ -67,13 +67,13 @@ export namespace ChatMessage {
             message: new Uint8Array(0),
             epoch: 0,
             rln_proof: new Uint8Array(0), // change
-            alias: "",
-          };
+            alias: '',
+          }
 
-          const end = length == null ? reader.len : reader.pos + length;
+          const end = length == null ? reader.len : reader.pos + length
 
           while (reader.pos < end) {
-            const tag = reader.uint32();
+            const tag = reader.uint32()
 
             switch (tag >>> 3) {
               case 1:
@@ -95,15 +95,15 @@ export namespace ChatMessage {
                 obj.alias = reader.string()
                 break
               default:
-                reader.skipType(tag & 7);
-                break;
+                reader.skipType(tag & 7)
+                break
             }
           }
 
           if (obj.epoch == null) {
             throw new Error(
-              'Protocol error: value for required field "epoch" was not found in protobuf'
-            );
+              'Protocol error: value for required field "epoch" was not found in protobuf',
+            )
           }
 
           if (obj.rln_proof == null) {
@@ -115,23 +115,23 @@ export namespace ChatMessage {
 
           if (obj.message == null) {
             throw new Error(
-              'Protocol error: value for required field "message" was not found in protobuf'
-            );
+              'Protocol error: value for required field "message" was not found in protobuf',
+            )
           }
 
-          return obj;
-        }
-      );
+          return obj
+        },
+      )
     }
 
-    return _codec;
-  };
+    return _codec
+  }
 
   export const encode = (obj: ChatMessage): Uint8Array => {
-    return encodeMessage(obj, ChatMessage.codec());
-  };
+    return encodeMessage(obj, ChatMessage.codec())
+  }
 
   export const decode = (buf: Uint8Array | Uint8ArrayList): ChatMessage => {
-    return decodeMessage(buf, ChatMessage.codec());
-  };
+    return decodeMessage(buf, ChatMessage.codec())
+  }
 }

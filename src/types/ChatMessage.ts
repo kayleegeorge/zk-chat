@@ -1,6 +1,6 @@
-import { bytesToUtf8, utf8ToBytes } from "../utils/formatting"
-import { RLNFullProof } from "rlnjs"
-import * as proto from "../proto/chat_message"
+import { bytesToUtf8, utf8ToBytes } from '../utils/formatting'
+import { RLNFullProof } from 'rlnjs'
+import * as proto from '../proto/chat_message'
 
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}
@@ -9,38 +9,38 @@ export class ChatMessage {
   static fromUtf8String(
     text: string,
     epoch: bigint,
-    rln_proof: RLNFullProof,
-    alias?: string
+    rlnProof: RLNFullProof,
+    alias?: string,
   ): ChatMessage {
     const message = utf8ToBytes(text)
 
     return new ChatMessage({
-        message, 
-        epoch,
-        rln_proof,
-        alias
+      message,
+      epoch,
+      rlnProof,
+      alias,
     })
   }
 
-    // TODO: which type of message is the Waku sending
-    static decodeMessage(wakuMsg: any): ChatMessage | undefined {
-      if (wakuMsg.payload) {
-        try {
-          return ChatMessage.decode(wakuMsg.payload)
-        } catch (e) {
-          console.error("Failed to decode chat message", e)
-        }
+  // TODO: which type of message is the Waku sending
+  static decodeMessage(wakuMsg: any): ChatMessage | undefined {
+    if (wakuMsg.payload) {
+      try {
+        return ChatMessage.decode(wakuMsg.payload)
+      } catch (e) {
+        console.error('Failed to decode chat message', e)
       }
-      return;
     }
+    return
+  }
 
   /**
    * Decode a protobuf payload to a ChatMessage.
    * @param bytes The payload to decode.
    */
   static decode(bytes: Uint8Array): ChatMessage {
-    const protoMsg = proto.ChatMessage.decode(bytes);
-    return new ChatMessage(protoMsg);
+    const protoMsg = proto.ChatMessage.decode(bytes)
+    return new ChatMessage(protoMsg)
   }
 
   /**
@@ -48,7 +48,7 @@ export class ChatMessage {
    * @returns The encoded payload.
    */
   encode(): Uint8Array {
-    return proto.ChatMessage.encode(this.proto);
+    return proto.ChatMessage.encode(this.proto)
   }
 
   get epoch(): bigint {
@@ -58,16 +58,16 @@ export class ChatMessage {
   get message(): string {
     return bytesToUtf8(this.proto.message)
   }
-  
+
   get roomName(): string {
     return this.roomName
   }
 
   get rln_proof(): RLNFullProof | undefined {
-    return this.proto.rln_proof
+    return this.proto.rlnProof
   }
 
   get alias(): string | undefined {
-    return this.alias ?? ""
+    return this.alias ?? ''
   }
 }
