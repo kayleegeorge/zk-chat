@@ -1,28 +1,21 @@
 {
-    "compilerOptions": {
-      "rootDir": "./src",
-      "outDir": "./lib/",
-      "target": "ES6",
-      "module": "esnext",
-      "noUnusedLocals": false,
-      "noUnusedParameters": true,
-      "noImplicitReturns": false,
-      "noFallthroughCasesInSwitch": true,
-      "forceConsistentCasingInFileNames": true,
-      "inlineSourceMap": true,
-      "inlineSources": true,
-      "esModuleInterop": true,
-      "declaration": true,
-      "moduleResolution": "Node",
-      "typeRoots": [
-        "node_modules/@types",
-        "src/types",
-      ]
-    },
-    "include": [
-      "src/**/*.ts"
-    ],
-    "exclude": [
-      "node_modules",
-    ]
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "ES6",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationDir": "./dist/types",
+    "strict": true
+  }
 }

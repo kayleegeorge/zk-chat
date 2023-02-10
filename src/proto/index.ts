@@ -1,1 +1,1 @@
-export * as proto_message from "./chat_message"
+export * as proto_message from './chat_message'

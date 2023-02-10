@@ -13,7 +13,7 @@ const config: Config.InitialOptions = {
 
   "transform": {
     "^.+\\.jsx?$": "babel-jest",
-    "^.+\\.tsx?$": "ts-jest"
+    "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.test.json" }]
   },
   "silent": true,
   "detectOpenHandles": true,
