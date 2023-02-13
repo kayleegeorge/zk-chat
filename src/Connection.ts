@@ -1,7 +1,7 @@
 import { WakuLight } from 'js-waku/lib/interfaces'
 //import { Decoder } from 'js-waku/lib/interfaces'
-import { UnsubscribeFunction } from 'js-waku/lib/waku_filter'
-import { RLN } from './RLN'
+// import { UnsubscribeFunction } from 'js-waku/lib/waku_filter/index'
+import RLN from './RLN'
 import { ChatMessage } from './types/ChatMessage'
 import { dateToEpoch, utf8ToBytes } from './utils/formatting'
 import { DecoderV0, EncoderV0, MessageV0 } from 'js-waku/lib/waku_message/version_0'
@@ -17,7 +17,7 @@ enum ConnectionStatus {
 type ContentTopicFunctions = {
   encoder: EncoderV0,
   decoder: DecoderV0,
-  unsubscribe: UnsubscribeFunction
+  unsubscribe: () => Promise<void>
 }
 
 /* Connecting with Waku as networking layer */
@@ -35,8 +35,6 @@ class WakuConnection {
   constructor(rlnInstance: RLN) {
     this.rlnInstance = rlnInstance
     this.contentTopicFunctions = new Map()
-    // this.updateChatStore = updateChatStore
-
   }
 
   /* subscribe to a certain contentTopic and add content topic functions */
@@ -83,7 +81,7 @@ class WakuConnection {
   /* process incoming received message and proof */
   public async processIncomingMessage(msgBuf: MessageV0) { // TODO get typing correct
     if (!msgBuf.payload) return
-    const chatMessage = ChatMessage.decodeMessage(msgBuf)
+    const chatMessage = ChatMessage.decodeWakuMessage(msgBuf)
     if (!chatMessage) return
 
     try {
@@ -107,23 +105,23 @@ class WakuConnection {
     }
   }
 
+  /* get all previous messages */ 
   public async retrieveMessageStore(contentTopic: string, timePeriod?: TimePeriod) {
     const decoder = this.contentTopicFunctions[contentTopic].decoder
+    const messages: ChatMessage[] = []
     const { startTime, endTime } = getDates(timePeriod ?? TimePeriod.Week)
     if (!this.waku) return
     try {
       for await (const msgPromises of this.waku.store.queryGenerator([decoder], { timeFilter: { startTime, endTime } })) {
         const wakuMessages = await Promise.all(msgPromises)
-        const messages: ChatMessage[] = []
-
-        wakuMessages.map((wakuMsg) => ChatMessage.decodeMessage(wakuMsg))
+        
+        wakuMessages.map((wakuMsg) => ChatMessage.decodeWakuMessage(wakuMsg))
           .forEach((msg) => {if (msg) { messages.push(msg) }})
-
-        //this.updateChatStore(messages)
       }
     } catch (e) {
       console.log('Failed to retrieve messages', e)
     }
+    return messages
   }
 }
 

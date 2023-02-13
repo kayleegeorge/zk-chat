@@ -12,7 +12,7 @@ const vkey = JSON.parse(fs.readFileSync(vkeyPath, 'utf-8'))
 const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 
-export class RLN {
+export default class RLN {
   public registry: Registry
 
   public identityCommitments: bigint[]
@@ -25,7 +25,7 @@ export class RLN {
 
   public rlnIdentifier: bigint
 
-  private identityCommitment: bigint
+  public identityCommitment: bigint
   // private memIndex: number
 
   public onChain: boolean

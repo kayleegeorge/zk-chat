@@ -1,4 +1,4 @@
-import { bytesToUtf8, utf8ToBytes } from '../utils/formatting'
+import { bytesToUtf8 } from '../utils/formatting'
 import { RLNFullProof } from 'rlnjs'
 import * as protoType from '../proto/ChatMessage'
 
@@ -7,12 +7,12 @@ export class ChatMessage {
 
   /* Create Chat Message with a utf-8 string as payload. */
   static fromUtf8String(
-    text: string,
+    message: Uint8Array,
     epoch: bigint,
-    rlnProof: RLNFullProof,
+    rlnProof?: RLNFullProof,
     alias?: string,
   ): ChatMessage {
-    const message = utf8ToBytes(text)
+    // const message = utf8ToBytes(text)
 
     return new ChatMessage({
       message, 
@@ -22,8 +22,8 @@ export class ChatMessage {
     })
   }
 
-  /* decodes received msg payload */
-  static decodeMessage(wakuMsg: any): ChatMessage | undefined {
+  /* decodes received msg payload from waku */
+  static decodeWakuMessage(wakuMsg: any): ChatMessage | undefined {
     if (wakuMsg.payload) {
       try {
         return ChatMessage.decode(wakuMsg.payload)

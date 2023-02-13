@@ -1,8 +1,7 @@
 import { Web3Provider } from '@ethersproject/providers'
-import { ChatRoom } from './ChatRoom'
+import ChatRoom from './ChatRoom'
 import { RoomType } from './types/ChatRoomOptions'
-// import { Identity } from '@semaphore-protocol/identity'
-import { RLN } from './RLN'
+import RLN from './RLN'
 import { Connection } from './Connection'
 import generateAppIdentifier from './utils/generateAppId'
 
@@ -37,14 +36,6 @@ export default class ChatApp {
     this.chatRoomStore = new Map<string, ChatRoom>()
   }
 
-  // ref: https://semaphore.appliedzkp.org/docs/guides/identities
-  /* identity generation without RLN */
-  // public createIdentity() {
-  //   const identity = new Identity()
-  //   console.log(identity)
-  //   return identity
-  // }
-
   /* app-level user registration: add user to chatApp and RLN registry */
   public async registerUser() {
     this.rln.constructRLNMemberTree()
@@ -68,7 +59,7 @@ export default class ChatApp {
 
   /* fetch all chat room messages for a given chatroom */
   public async fetchChatRoomMsgs(contentTopic: string) {
-    return this.chatRoomStore.get(contentTopic)?.retrieveMessageStore(contentTopic)
+    return this.chatRoomStore.get(contentTopic)?.retrieveMessageStore()
   }
 
   public fetchChatRoomsNames() {

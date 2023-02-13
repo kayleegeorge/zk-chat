@@ -1,15 +1,12 @@
 import { Web3Provider } from '@ethersproject/providers'
 import { RoomType } from './types/ChatRoomOptions'
-//import { UnsubscribeFunction } from 'js-waku/lib/waku_filter'
-//import { ChatMessage } from './types/ChatMessage'
 import { Connection } from './Connection'
-import { RLN } from './RLN'
-//import { RLNFullProof } from 'rlnjs'
+import RLN from './RLN'
 
 /*
  * Create a chat room
  */
-export class ChatRoom {
+export default class ChatRoom {
   public roomType: RoomType
 
   public chatRoomName: string
@@ -40,21 +37,27 @@ export class ChatRoom {
   }
 
   /* retrieve Store Messages */
-  public async retrieveMessageStore(contentTopic: string) {
-    return this.connection.retrieveMessageStore(contentTopic)
+  public async retrieveMessageStore() {
+    return this.connection.retrieveMessageStore(this.chatRoomName) // content topic
   }
 
   /* send a message */
-  public async sendMessage(text: string, alias: string, roomName: string) {
-    this.connection.sendMessage(text, alias, roomName)
+  public async sendMessage(text: string, alias: string) {
+    try {
+      await this.connection.sendMessage(text, alias, this.chatRoomName)
+    } catch (error) {
+      console.log('error sending message', text)
+    }
   }
 
+  /* add chat member */
   public async addChatMember(memPubkey: string) {
     if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
       console.error('Cannot add more than 5 members to a private group')
     } else {
       this.chatMembers.push(memPubkey)
     }
+    return memPubkey
   }
 
   public getChatMembers() {

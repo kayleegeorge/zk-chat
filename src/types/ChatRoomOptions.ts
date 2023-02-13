@@ -1,7 +1,7 @@
 
 export enum RoomType {
-    PubGroup = 'Public', // 
-    PrivGroup = 'Private' // DM group <= 5 
+  PubGroup = 'Public', // 
+  PrivGroup = 'Private', // DM group <= 5 
 
   /* 
     * Future:
