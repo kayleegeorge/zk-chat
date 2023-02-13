@@ -7,7 +7,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 
 /* needed file paths */
-const vkeyPath = path.join('./zkeyFiles', 'rln', 'verification_key.json')
+const vkeyPath = path.join('src', 'zkeyFiles', 'verification_key.json')
 const vkey = JSON.parse(fs.readFileSync(vkeyPath, 'utf-8'))
 const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
@@ -82,7 +82,7 @@ export class RLN {
 
   /* Allow new user registraction with rln contract for rln registry */
   public async registerUserOnRLNContract(provider: Web3Provider) {
-    assert(this.onChain)
+    if (!this.onChain) return
 
     const price = await this.contract.MEMBERSHIP_DEPOSIT()
     const signer = provider.getSigner()
@@ -109,6 +109,7 @@ export class RLN {
       // if on chain, slash
       if (this.onChain) {
         const withdrawRes = this.contract.withdraw(result.secret) // might need to add payable receiver
+        console.log('contract rest: ', withdrawRes)
       }
     }
   }

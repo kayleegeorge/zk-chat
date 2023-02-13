@@ -1,28 +1,19 @@
-import type { Config } from '@jest/types';
-
-const config: Config.InitialOptions = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  moduleFileExtensions: [
-    "js",
-    "jsx",
-    "tsx",
-    "ts"
-  ],
-  "rootDir": "tests/",
-
-  "transform": {
-    "^.+\\.jsx?$": "babel-jest",
-    "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.test.json" }]
+export default {
+  'moduleNameMapper': {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  "silent": true,
-  "detectOpenHandles": true,
-  "testTimeout": 60000,
-  "collectCoverage": true,
-  "forceExit": true,
-  moduleDirectories: ["node_modules", 'src'],
-  moduleNameMapper: {
-    '^js-waku/(.*)$': ['<rootDir>/node_modules/$1'],
-},
-};
-export default config;
+  'transform': {
+    // '^.+\\.[tj]sx?$' to process js/ts with `ts-jest`
+    // '^.+\\.m?[tj]sx?$' to process js/ts/mjs/mts with `ts-jest`
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        'useESM': true,
+      },
+    ],
+  },
+  // from https://stackoverflow.com/a/57916712/15076557
+  transformIgnorePatterns: [
+    //'node_modules/(?!(module-that-needs-to-be-transformed)/)' // add packages that are giving import/export errors here
+  ],
+}

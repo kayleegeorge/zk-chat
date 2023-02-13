@@ -1,7 +1,7 @@
 import { Web3Provider } from '@ethersproject/providers'
 import { ChatRoom } from './ChatRoom'
 import { RoomType } from './types/ChatRoomOptions'
-import { Identity } from '@semaphore-protocol/identity'
+// import { Identity } from '@semaphore-protocol/identity'
 import { RLN } from './RLN'
 import { Connection } from './Connection'
 import generateAppIdentifier from './utils/generateAppId'
@@ -26,7 +26,9 @@ export default class ChatApp {
     existingIdentity?: string,
     rlnIdentifier?: bigint,
   ) {
-    this.appName = appName // also contentTopic for Waku connection
+    this.appName = appName 
+    this.onChain = onChain
+
     this.provider = provider
     rlnIdentifier = rlnIdentifier ? rlnIdentifier : generateAppIdentifier(appName)
     this.rln = new RLN(onChain, existingIdentity, rlnIdentifier) // might need to pass provider?
@@ -37,11 +39,11 @@ export default class ChatApp {
 
   // ref: https://semaphore.appliedzkp.org/docs/guides/identities
   /* identity generation without RLN */
-  public createIdentity() {
-    const identity = new Identity()
-    console.log(identity)
-    return identity
-  }
+  // public createIdentity() {
+  //   const identity = new Identity()
+  //   console.log(identity)
+  //   return identity
+  // }
 
   /* app-level user registration: add user to chatApp and RLN registry */
   public async registerUser() {

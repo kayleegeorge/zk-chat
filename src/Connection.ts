@@ -87,18 +87,18 @@ class WakuConnection {
     if (!chatMessage) return
 
     try {
-      const { message, epoch, rln_proof, alias } = chatMessage
+      const { message, epoch, rlnProof, alias } = chatMessage
       const timestamp = new Date().setTime(Number(epoch) * 1000)
 
       let proofResult
-      if (!rln_proof) {
+      if (!rlnProof) {
         console.log('No Proof with Message')
       } else {
-        console.log(`Proof attached: ${rln_proof}`)
-        proofResult = await this.rlnInstance.verifyProof(rln_proof)
+        console.log(`Proof attached: ${rlnProof}`)
+        proofResult = await this.rlnInstance.verifyProof(rlnProof)
         if (proofResult) {
           //this.updateChatStore([chatMessage])
-          this.rlnInstance.addProofToCache(rln_proof) // add proof to RLN cache on success
+          this.rlnInstance.addProofToCache(rlnProof) // add proof to RLN cache on success
         }
       }
       console.log(`Message Received from ${alias}: ${message}, sent at ${timestamp}`)

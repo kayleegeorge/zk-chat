@@ -1,10 +1,10 @@
 
 import typescript from 'rollup-plugin-typescript2';
 import cleaner from 'rollup-plugin-cleaner';
-import { visualizer } from "rollup-plugin-visualizer";
-import * as fs from "fs"
+import { visualizer } from 'rollup-plugin-visualizer';
+import * as fs from 'fs'
 
-const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"))
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
 const banner = `/**
  * @module ${pkg.name}
  * @version ${pkg.version}
@@ -17,8 +17,8 @@ const banner = `/**
 export default {
   input: 'src/index.ts',
   output: [
-    { file: pkg.exports.require, format: "cjs", banner, exports: "auto" },
-    { file: pkg.exports.import, format: "es", banner }
+    { file: pkg.exports.require, format: 'cjs', banner, exports: 'auto' },
+    { file: pkg.exports.import, format: 'es', banner }
   ],
   plugins: [
     cleaner({
@@ -29,8 +29,8 @@ export default {
     typescript({tsconfig: 'tsconfig.build.json'}),
     visualizer({
       emitFile: true,
-      filename: "stats.html",
-      template: "sunburst"
+      filename: 'stats.html',
+      template: 'sunburst',
     }),
   ]
 };

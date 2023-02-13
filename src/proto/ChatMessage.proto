@@ -1,38 +1,8 @@
-syntax = "proto3"
-import "google/protobuf/any.proto";
+syntax = "proto3";
 
 message ChatMessage {
-  optional Bytes message = 1;
-  optional uint64 epoch = 2; // unix time rounded to the minute
-  optional Bytes rln_proof = 3;
+  bytes message = 1;
+  uint64 epoch = 2; // unix time rounded to the minute
+  optional bytes rlnProof = 3;
   optional string alias = 4;
 }
-
-message RLNFullProof {
-  optional Proof proof = 1;
-  optional RLNPublicSignals publicSignals = 2;
-}
-
-message Proof {
-  optional google.protobuf.Any pi_a = 1;
-  optional google.protobuf.Any pi_a = 2;
-  optional google.protobuf.Any pi_a = 3;
-  optional string protocol = 4;
-  optional string cruve = 5;
-}
-message RLNPublicSignals {
-  optional google.protobuf.Any yShare = 1;
-  optional google.protobuf.Any merkleRoot = 2;
-  optional google.protobuf.Any internalNullifier = 3;
-  optional google.protobuf.Any signalHash = 4;
-  optional google.protobuf.Any epoch = 5;
-  optional google.protobuf.Any rlnIdentifier = 6;
-}
-
-/*
-of could do something like:
-  oneof merkleRoot = {
-    string s;
-    uint64 b;
-  }
-*/
