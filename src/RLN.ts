@@ -17,7 +17,7 @@ export default class RLN {
 
   public identityCommitments: bigint[]
 
-  public contract: Contract
+  public contract: Contract | undefined
 
   public rlnjs: RLNjs
 
@@ -28,14 +28,11 @@ export default class RLN {
   public identityCommitment: bigint
   // private memIndex: number
 
-  public onChain: Contract
-
-  constructor(onChain: Contract, existingIdentity?: string, rlnIdentifier?: bigint) {
+  constructor(onChain?: Contract, existingIdentity?: string, rlnIdentifier?: bigint) {
     // RLN
     this.registry = new Registry()
-    this.onChain = onChain
+    this.contract = onChain
 
-    this.contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI) // might need to add back provider
     this.rlnjs = new RLNjs(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity)
     this.rlnIdentifier = this.rlnjs.rlnIdentifier
     this.identityCommitments = []
@@ -46,14 +43,10 @@ export default class RLN {
     this.registry.addMember(this.identityCommitment)
   }
 
-  /* RLN proof verification */
-  public async verifyProof(rlnProof: RLNFullProof) {
-    return RLNjs.verifyProof(vkey, rlnProof)
-  }
-
-  /* returns rln member Identity */
-  public getIdentityAsString() {
-    return this.rlnjs.identity.toString()
+  /* handle init on chain stuff */
+  public async initOnChain() {
+    if (!this.contract) return
+    await this.constructRLNMemberTree
   }
 
   /* generate RLN Proof */
@@ -64,8 +57,14 @@ export default class RLN {
     return proof
   }
 
+  /* RLN proof verification */
+  public async verifyProof(rlnProof: RLNFullProof) {
+    return RLNjs.verifyProof(vkey, rlnProof)
+  }
+
   /* construct RLN member tree locally */
   public async constructRLNMemberTree() {
+    if (!this.contract) return
     const memRegEvent = this.contract.filters.MemberRegistered()
 
     // populate merkle tree with existing users
@@ -82,7 +81,7 @@ export default class RLN {
 
   /* Allow new user registraction with rln contract for rln registry */
   public async registerUserOnRLNContract(provider: Web3Provider) {
-    if (!this.onChain) return
+    if (!this.contract) return
 
     const price = await this.contract.MEMBERSHIP_DEPOSIT()
     const signer = provider.getSigner()
@@ -107,11 +106,16 @@ export default class RLN {
       console.log('member withdrawn: ', result.secret)
 
       // if on chain, slash
-      if (this.onChain) {
+      if (this.contract) {
         const withdrawRes = this.contract.withdraw(result.secret) // might need to add payable receiver
         console.log('contract rest: ', withdrawRes)
       }
     }
+  }
+  
+  /* returns rln member Identity */
+  public getIdentityAsString() {
+    return this.rlnjs.identity.toString()
   }
 
   /* generate RLN credentials */

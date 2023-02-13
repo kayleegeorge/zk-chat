@@ -18,11 +18,11 @@ export default class ChatApp {
 
   public connection: Connection
 
-  public onChain: Contract 
+  public onChain: Contract | undefined
 
   public constructor(
     appName: string,
-    onChain: Contract,
+    onChain?: Contract,
     provider?: Web3Provider,
     existingIdentity?: string,
     rlnIdentifier?: bigint,
@@ -39,9 +39,8 @@ export default class ChatApp {
   }
 
   /* app-level user registration: add user to chatApp and RLN registry */
-  public async registerUser() {
-    this.rln.constructRLNMemberTree()
-    if (this.provider) await this.rln.registerUserOnRLNContract(this.provider) // TODO: maybe this not needed? investigate
+  public async registerUserOnChain() {
+    if (this.provider) await this.rln.registerUserOnRLNContract(this.provider)
     return this.rln.rlnjs.identity
   }
 
@@ -64,6 +63,7 @@ export default class ChatApp {
     return this.chatRoomStore.get(contentTopic)?.retrieveMessageStore()
   }
 
+  /* get chat room names */
   public fetchChatRoomsNames() {
     return Array.from(this.chatRoomStore.keys())
   }

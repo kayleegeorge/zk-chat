@@ -38,7 +38,8 @@ describe('waku node', async () => {
 })
 
 describe('chatApp', () => {
-  const app = new ChatApp('test-app', false)
+  const contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI)
+  const app = new ChatApp('test-app', contract)
   //const rlnMem = app.rln.rlnjs.identity
   it('Expect rln identifier to be big int', () => {
     const rlnIdentifier = app.rln.rlnIdentifier
