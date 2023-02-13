@@ -2,6 +2,7 @@ import { Web3Provider } from '@ethersproject/providers'
 import { RoomType } from './types/ChatRoomOptions'
 import { Connection } from './Connection'
 import RLN from './RLN'
+import User from './User'
 
 /*
  * Create a chat room
@@ -17,13 +18,12 @@ export default class ChatRoom {
 
   public connection: Connection
 
-  // TODO Create a "User" type instead of string
-  private chatMembers: string[]
+  private chatMembers: User[]
 
   public constructor(
     chatRoomName: string,
     roomType: RoomType,
-    chatMembers: string[],
+    chatMembers: User[],
     rlnInstance: RLN,
     connection: Connection,
     provider?: Web3Provider,
@@ -51,13 +51,14 @@ export default class ChatRoom {
   }
 
   /* add chat member */
-  public async addChatMember(memPubkey: string) {
+  public async addChatMember(member: User) {
+
     if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
       console.error('Cannot add more than 5 members to a private group')
     } else {
-      this.chatMembers.push(memPubkey)
+      this.chatMembers.push(member)
     }
-    return memPubkey
+    return member
   }
 
   public getChatMembers() {

@@ -4,6 +4,8 @@ import { RoomType } from './types/ChatRoomOptions'
 import RLN from './RLN'
 import { Connection } from './Connection'
 import generateAppIdentifier from './utils/generateAppId'
+import { Contract } from 'ethers'
+import User from './User'
 
 export default class ChatApp {
   public appName: string
@@ -16,11 +18,11 @@ export default class ChatApp {
 
   public connection: Connection
 
-  public onChain: boolean
+  public onChain: Contract 
 
   public constructor(
     appName: string,
-    onChain: boolean,
+    onChain: Contract,
     provider?: Web3Provider,
     existingIdentity?: string,
     rlnIdentifier?: bigint,
@@ -44,7 +46,7 @@ export default class ChatApp {
   }
 
   /* create chat room */
-  public createChatRoom(name: string, roomType: RoomType, chatMembers: string[] = []): ChatRoom {
+  public createChatRoom(name: string, roomType: RoomType, chatMembers: User[] = []): ChatRoom {
     let chatRoomName = `/${this.appName}/${roomType}-${name}/`
     // no duplicate chat room names
     let i = 0

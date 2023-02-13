@@ -28,9 +28,9 @@ export default class RLN {
   public identityCommitment: bigint
   // private memIndex: number
 
-  public onChain: boolean
+  public onChain: Contract
 
-  constructor(onChain: boolean, existingIdentity?: string, rlnIdentifier?: bigint) {
+  constructor(onChain: Contract, existingIdentity?: string, rlnIdentifier?: bigint) {
     // RLN
     this.registry = new Registry()
     this.onChain = onChain
