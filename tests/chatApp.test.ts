@@ -1,7 +1,7 @@
-import { ChatApp, ChatRoom } from '../dist'
-import { ChatMessage } from '../dist/proto/ChatMessage'
-import { RoomType } from '../dist/types/ChatRoomOptions'
-import { utf8ToBytes } from '../dist/utils/formatting'
+import { ChatApp, ChatRoom } from '../src'
+import { ChatMessage } from '../src/proto/ChatMessage'
+import { RoomType } from '../src/types/ChatRoomOptions'
+import { utf8ToBytes } from '../src/utils/formatting'
 import { ChatMessage as ChatMsg } from '../src/types/ChatMessage'
 import { createWakuNode } from '../src/utils/createWakuNode'
 
@@ -9,7 +9,7 @@ import { createWakuNode } from '../src/utils/createWakuNode'
 describe('test protons', () => {
   const chatMsg: ChatMessage = {
     message: utf8ToBytes('test msg'),
-    epoch: BigInt(100), 
+    epoch: BigInt(100),
   }
 
   const encodedMsg = ChatMessage.encode(chatMsg)
@@ -44,7 +44,7 @@ describe('chatApp', () => {
     const rlnIdentifier = app.rln.rlnIdentifier
     expect(rlnIdentifier).toBe(BigInt)
   })
-  
+
   it('expect rln member', () => {
     const rlnMember = app.rln.identityCommitment
     expect(rlnMember).toBe(BigInt)
@@ -66,5 +66,5 @@ describe('chatApp', () => {
     const msgsSent = await chatroom.retrieveMessageStore()
     expect(msgsSent[0]).toBe(ChatMessage)
   })
-  
+
 })
