@@ -1,18 +1,19 @@
-import { bytesToUtf8 } from '../utils/formatting'
+import { bytesToUtf8, utf8ToBytes } from '../utils/formatting'
 import { RLNFullProof } from 'rlnjs'
 import * as protoType from '../proto/ChatMessage'
 
+/* Wrapper for proto */
 export class ChatMessage {
   public constructor(public proto: protoType.ChatMessage) {}
 
   /* Create Chat Message with a utf-8 string as payload. */
   static fromUtf8String(
-    message: Uint8Array,
+    text: string,
     epoch: bigint,
     rlnProof?: RLNFullProof,
     alias?: string,
   ): ChatMessage {
-    // const message = utf8ToBytes(text)
+    const message = utf8ToBytes(text)
 
     return new ChatMessage({
       message, 

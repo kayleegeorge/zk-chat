@@ -1,7 +1,6 @@
 import { GOERLI } from './utils/checkChain'
 import { genExternalNullifier, Registry, RLN as RLNjs, RLNFullProof, Cache } from 'rlnjs'
-import { Contract, ethers } from 'ethers'
-import { RLN_ABI, RLN_ADDRESS } from './rln/contractInfo'
+import { Contract } from 'ethers'
 import { Web3Provider } from '@ethersproject/providers'
 import * as path from 'path'
 import * as fs from 'fs'
