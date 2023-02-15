@@ -5,8 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-// protons src/proto/ChatMessage.proto src/proto/ChatMessage.ts
-
 import { encodeMessage, decodeMessage, message } from 'protons-runtime'
 import type { Codec } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
@@ -41,12 +39,6 @@ export namespace ChatMessage {
         if (obj.rlnProof != null) {
           w.uint32(26)
           w.bytes(obj.rlnProof)
-          /*
-            obj.rateLimitProof = RateLimitProof.codec().decode(
-              reader,
-              reader.uint32()
-            );
-          */
         }
 
         if (obj.alias != null) {

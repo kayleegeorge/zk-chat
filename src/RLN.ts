@@ -45,7 +45,7 @@ export default class RLN {
   /* handle init on chain stuff */
   public async initOnChain() {
     if (!this.contract) return
-    await this.constructRLNMemberTree
+    await this.constructRLNMemberTree()
   }
 
   /* generate RLN Proof */
