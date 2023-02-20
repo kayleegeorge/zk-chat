@@ -8,7 +8,6 @@ import { Contract } from 'ethers'
 import User from '../src/User'
 import generateAppIdentifier from '../src/utils/generateAppId'
 
-
 describe('test chat message encode / decode', () => {
   const protoMsg = new ChatMessage({
     message: strToArr('test msg'),

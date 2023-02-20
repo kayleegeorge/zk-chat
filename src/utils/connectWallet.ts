@@ -11,6 +11,7 @@ export default async function getProvider(): Promise<Web3Provider | undefined> {
     return provider
   } catch (e) {
     console.error('No web3 provider available', e)
+    throw e
   }
 }
 
@@ -21,11 +22,12 @@ export async function getAddress(provider: Web3Provider): Promise<string | undef
     const accounts = await provider.send('eth_requestAccounts', [])
     const address = accounts[0]
     // const accounts = await provider.send("eth_requestAccounts", [])
-    const network = await this.provider.getNetwork()
+    const network = await provider.getNetwork()
     checkChain(network)
     console.log('Ethereum addressdetected! Account: ', address)
     return address
   } catch (e) {
     console.log('Error retrieving address', e)
+    throw e
   }
 }
