@@ -1,6 +1,6 @@
 import { ChatApp, ChatRoom } from '../src'
 import { RoomType } from '../src/types/ChatRoomOptions'
-import { utf8ToBytes } from '../src/utils/formatting'
+import { strToArr } from '../src/utils/formatting'
 import { ChatMessage } from '../src/types/ChatMessage'
 import { createWakuNode } from '../src/utils/createWakuNode'
 import { RLN_ABI, RLN_ADDRESS } from '../src/rln/contractInfo'
@@ -11,7 +11,7 @@ import generateAppIdentifier from '../src/utils/generateAppId'
 
 describe('test chat message encode / decode', () => {
   const protoMsg = new ChatMessage({
-    message: utf8ToBytes('test msg'),
+    message: strToArr('test msg'),
     epoch: BigInt(100),
   })
   const encodedMsg = protoMsg.encode()
@@ -46,7 +46,7 @@ describe('waku node', async () => {
 
 /* with contract */
 describe('Chat App with contract functionality', () => {
-  const contract = new ethers.Contract(RLN_ADDRESS, RLN_ABI)
+  const contract = new Contract(RLN_ADDRESS, RLN_ABI)
   it('inits contract properly', () => {
     expect(contract).toBeInstanceOf(Contract)
   })

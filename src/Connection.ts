@@ -3,7 +3,7 @@ import { WakuLight } from 'js-waku/lib/interfaces'
 // import { UnsubscribeFunction } from 'js-waku/lib/waku_filter/index'
 import RLN from './RLN'
 import { ChatMessage } from './types/ChatMessage'
-import { dateToEpoch, utf8ToBytes } from './utils/formatting'
+import { dateToEpoch, strToArr } from './utils/formatting'
 import { DecoderV0, EncoderV0, MessageV0 } from 'js-waku/lib/waku_message/version_0'
 import { getDates, TimePeriod } from './utils/getDates'
 import { createWakuNode } from './utils/createWakuNode'
@@ -163,7 +163,7 @@ export class Connection {
     const rlnProof = await this.rlnInstance.generateRLNProof(rawMessage.message, rawMessage.epoch)
 
     const protoMsg = new ChatMessage({
-      message: utf8ToBytes(text),
+      message: strToArr(text),
       epoch: dateToEpoch(date),
       rlnProof: rlnProof,
       alias,

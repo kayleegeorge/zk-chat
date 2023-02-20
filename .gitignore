@@ -4,6 +4,7 @@
 .env
 /rlnjs
 /rln-circuits
+node_modules
 
 coverage
 coverage.json

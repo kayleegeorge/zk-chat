@@ -1,4 +1,4 @@
-import { bytesToUtf8, utf8ToBytes } from '../utils/formatting'
+import { arrToStr, strToArr } from '../utils/formatting'
 import { RLNFullProof } from 'rlnjs'
 import * as protoType from '../proto/ChatMessage'
 
@@ -13,7 +13,7 @@ export class ChatMessage {
     rlnProof?: RLNFullProof,
     alias?: string,
   ): ChatMessage {
-    const message = utf8ToBytes(text)
+    const message = strToArr(text)
 
     return new ChatMessage({
       message, 
@@ -57,7 +57,7 @@ export class ChatMessage {
   }
 
   get message(): string {
-    return bytesToUtf8(this.proto.message)
+    return arrToStr(this.proto.message)
   }
 
   get rlnProof(): RLNFullProof | undefined {
