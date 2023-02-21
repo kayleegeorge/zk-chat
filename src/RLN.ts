@@ -1,5 +1,5 @@
 import { GOERLI } from './utils/checkChain'
-import { genExternalNullifier, Registry, RLN as RLNjs, RLNFullProof, Cache } from 'rlnjs'
+import { genExternalNullifier, Registry, RLN as RLNjs, Cache } from './rlnjs'
 import { Contract } from 'ethers'
 import { Web3Provider } from '@ethersproject/providers'
 import * as path from 'path'
@@ -57,7 +57,7 @@ export default class RLN {
   }
 
   /* RLN proof verification */
-  public async verifyProof(rlnProof: RLNFullProof) {
+  public async verifyProof(rlnProof: any) {
     return RLNjs.verifyProof(vkey, rlnProof)
   }
 
@@ -96,8 +96,8 @@ export default class RLN {
   }
 
   /* handle adding proof to cache */
-  public addProofToCache(proof: RLNFullProof) {
-    const result = this.cache.addProof(proof)
+  public addProofToCache(proof: any) {
+    const result = this.cache.add(proof)
 
     // if breached, slash the member id commitment
     if (result.secret) {

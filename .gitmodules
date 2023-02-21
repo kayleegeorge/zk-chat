@@ -1,0 +1,3 @@
+[submodule "src/rlnjs"]
+	path = src/rlnjs
+	url = https://github.com/Rate-Limiting-Nullifier/rlnjs.git

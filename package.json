@@ -52,7 +52,15 @@
     "js-waku": "^0.30.0",
     "protons-runtime": "^5.0.0",
     "rlnjs": "github:Rate-Limiting-Nullifier/rlnjs",
-    "uint8arrays": "^4.0.3"
+    "ts-node": "^10.9.1",
+    "uint8arrays": "^4.0.3",
+    "@ethersproject/bytes": "^5.6.1",
+    "@ethersproject/solidity": "^5.6.1",
+    "@ethersproject/strings": "^5.6.1",
+    "@zk-kit/incremental-merkle-tree": "^0.4.3",
+    "ffjavascript": "0.2.55",
+    "poseidon-lite": "^0.0.2",
+    "snarkjs": "^0.4.22"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.20.2",
@@ -60,7 +68,7 @@
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@types/chai": "^4.3.4",
-    "@types/jest": "^29.2.3",
+    "@types/jest": "^29.4.0",
     "@types/node": "^18.11.19",
     "@types/react": "^18.0.26",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
@@ -78,7 +86,7 @@
     "rollup-plugin-cleaner": "^1.0.0",
     "rollup-plugin-typescript2": "^0.34.1",
     "rollup-plugin-visualizer": "^5.9.0",
-    "ts-jest": "^29.0.3",
+    "ts-jest": "^29.0.5",
     "ts-loader": "^9.4.1",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5"
