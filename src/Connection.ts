@@ -17,7 +17,7 @@ enum ConnectionStatus {
 type ContentTopicFunctions = {
   encoder: EncoderV0,
   decoder: DecoderV0,
-  unsubscribe: () => Promise<void>
+  unsubscribe?: () => Promise<void>
 }
 
 /* Connecting with Waku as networking layer */
@@ -40,16 +40,20 @@ class WakuConnection {
   /* subscribe to a certain contentTopic and add content topic functions */
   public async subscribe(contentTopic: string) {
     const decoder = new DecoderV0(contentTopic)
-    this.contentTopicFunctions[contentTopic].decoder = decoder
-    this.contentTopicFunctions[contentTopic].encoder = new EncoderV0(contentTopic)
     const unsubscribe = await this.waku?.filter.subscribe([decoder], this.processIncomingMessage)
-    this.contentTopicFunctions[contentTopic].unsubscribe = unsubscribe
+
+    const functions: ContentTopicFunctions = {
+      encoder: new EncoderV0(contentTopic),
+      decoder: decoder,
+      unsubscribe: unsubscribe
+    }
+    this.contentTopicFunctions.set(contentTopic, functions)
   }
 
   /* unsubscribe from a given room / content topic */
   public async unsubscribe(contentTopic: string) {
-    const unsub = this.contentTopicFunctions[contentTopic].unsubscribe
-    await unsub()
+    const unsub = this.contentTopicFunctions.get(contentTopic)?.unsubscribe
+    if (unsub) await unsub()
   }
 
   /* connect to a waku node */
@@ -69,10 +73,10 @@ class WakuConnection {
 
   /* send a message using Waku */
   public async sendMessage(payload: Uint8Array, contentTopic: string) {
-    if (!this.waku) {
+    const encoder = this.contentTopicFunctions.get(contentTopic)?.encoder
+    if (!this.waku || !encoder) {
       throw new Error('waku not connected')
     }
-    const encoder = this.contentTopicFunctions[contentTopic].encoder
     await this.waku.lightPush.push(encoder, { payload }).then((msg) => {
       console.log(`Sent Encoded Message: ${msg}`)
     })
@@ -107,10 +111,11 @@ class WakuConnection {
 
   /* get all previous messages */ 
   public async retrieveMessageStore(contentTopic: string, timePeriod?: TimePeriod) {
-    const decoder = this.contentTopicFunctions[contentTopic].decoder
+    const decoder = this.contentTopicFunctions.get(contentTopic)?.decoder
     const messages: ChatMessage[] = []
     const { startTime, endTime } = getDates(timePeriod ?? TimePeriod.Week)
-    if (!this.waku) return
+    
+    if (!this.waku || !decoder) return
     try {
       for await (const msgPromises of this.waku.store.queryGenerator([decoder], { timeFilter: { startTime, endTime } })) {
         const wakuMessages = await Promise.all(msgPromises)
@@ -177,6 +182,4 @@ export class Connection {
   }
 
 }
-
-
 
