@@ -16,6 +16,10 @@
     "esModuleInterop": true,
     "declaration": true,
     "declarationDir": "./dist/types",
-    "strict": true
+    "strict": true,
+    "typeRoots": [
+      "node_modules/@types",
+      "src/types",
+    ],
   }
 }

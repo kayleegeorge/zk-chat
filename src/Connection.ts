@@ -45,7 +45,7 @@ class WakuConnection {
     const functions: ContentTopicFunctions = {
       encoder: new EncoderV0(contentTopic),
       decoder: decoder,
-      unsubscribe: unsubscribe
+      unsubscribe: unsubscribe,
     }
     this.contentTopicFunctions.set(contentTopic, functions)
   }
@@ -120,7 +120,9 @@ class WakuConnection {
       for await (const msgPromises of this.waku.store.queryGenerator([decoder], { timeFilter: { startTime, endTime } })) {
         const wakuMessages = await Promise.all(msgPromises)
         
-        wakuMessages.map((wakuMsg) => ChatMessage.decodeWakuMessage(wakuMsg))
+        wakuMessages.map((wakuMsg) => {
+          return wakuMsg ? ChatMessage.decodeWakuMessage(wakuMsg) : ''
+        })
           .forEach((msg) => {if (msg) { messages.push(msg) }})
       }
     } catch (e) {

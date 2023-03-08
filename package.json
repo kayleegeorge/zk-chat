@@ -3,10 +3,12 @@
   "version": "0.0.1",
   "description": "decentralized p2p chat library",
   "scripts": {
+    "prepare": "husky install",
+    "build": "rollup --config rollup.config.mjs",
     "test": "jest",
     "test:debug": "jest --silent=false",
-    "build": "rollup --config rollup.config.mjs",
-    "lint": "eslint --ext .ts,.tsx,.js,.jsx src/ -c .eslintrc.js"
+    "lint": "eslint --ext .ts,.tsx,.js,.jsx src/ -c .eslintrc.js",
+    "format": "eslint --ext .ts,.tsx,.js,.jsx src/ -c .eslintrc.js --fix"
   },
   "repository": {
     "type": "git",
@@ -36,6 +38,7 @@
     "README.md"
   ],
   "dependencies": {
+    "16": "^0.0.2",
     "@ethersproject/providers": "^5.7.2",
     "@metamask/detect-provider": "^2.0.0",
     "@nodeutils/defaults-deep": "^1.1.0",
@@ -51,6 +54,8 @@
     "ethers": "^5.7.2",
     "js-waku": "^0.30.0",
     "protons-runtime": "^5.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "rlnjs": "github:Rate-Limiting-Nullifier/rlnjs",
     "uint8arrays": "^4.0.3"
   },
@@ -62,7 +67,8 @@
     "@types/chai": "^4.3.4",
     "@types/jest": "^29.2.3",
     "@types/node": "^18.11.19",
-    "@types/react": "^18.0.26",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/parser": "^5.51.0",
     "eslint": "^8.33.0",

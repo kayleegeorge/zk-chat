@@ -1,6 +1,7 @@
 import { arrToStr, strToArr } from '../utils/formatting'
 import { RLNFullProof } from 'rlnjs'
 import * as protoType from '../proto/ChatMessage'
+import { MessageV0 } from 'js-waku/lib/waku_message/version_0'
 
 /* Wrapper for proto */
 export class ChatMessage {
@@ -24,7 +25,7 @@ export class ChatMessage {
   }
 
   /* decodes received msg payload from waku */
-  static decodeWakuMessage(wakuMsg: any): ChatMessage | undefined {
+  static decodeWakuMessage(wakuMsg: MessageV0): ChatMessage | undefined {
     if (wakuMsg.payload) {
       try {
         return ChatMessage.decode(wakuMsg.payload)
@@ -41,6 +42,7 @@ export class ChatMessage {
    */
   static decode(bytes: Uint8Array): ChatMessage {
     const protoMsg = protoType.ChatMessage.decode(bytes)
+    // might need to change this, reference zk chat app
     return new ChatMessage(protoMsg)
   }
 

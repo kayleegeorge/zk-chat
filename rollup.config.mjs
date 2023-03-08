@@ -14,19 +14,24 @@ const banner = `/**
  * @see [Github]{@link ${pkg.homepage}}
 */`
 
+
 export default {
   input: 'src/index.ts',
   output: [
     { file: pkg.exports.require, format: 'cjs', banner, exports: 'auto' },
     { file: pkg.exports.import, format: 'es', banner },
   ],
+  external: Object.keys(pkg.dependencies),
   plugins: [
     cleaner({
       targets: [
         './dist/',
       ],
     }),
-    typescript({ tsconfig: 'tsconfig.build.json' }),
+    typescript({
+      tsconfig: 'tsconfig.build.json',
+      useTsconfigDeclarationDir: true,
+    }),
     visualizer({
       emitFile: true,
       filename: 'stats.html',
