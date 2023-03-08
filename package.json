@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "description": "decentralized p2p chat library",
   "scripts": {
-    "prepare": "husky install",
     "build": "rollup --config rollup.config.mjs",
     "test": "jest",
     "test:debug": "jest --silent=false",
