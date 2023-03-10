@@ -5,7 +5,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { Codec, encodeMessage, decodeMessage, message } from 'protons-runtime'
+import type { Codec } from 'protons-runtime'
+import { encodeMessage, decodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface ChatMessage {

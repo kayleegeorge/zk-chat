@@ -2,6 +2,8 @@
 import typescript from 'rollup-plugin-typescript2'
 import cleaner from 'rollup-plugin-cleaner'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+
 import * as fs from 'fs'
 
 const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
@@ -21,8 +23,14 @@ export default {
     { file: pkg.exports.require, format: 'cjs', banner, exports: 'auto' },
     { file: pkg.exports.import, format: 'es', banner },
   ],
-  external: Object.keys(pkg.dependencies),
+  // external: Object.keys(pkg.dependencies),
+  // external: [ 'fs', 'ethers', 'rlnjs', 'protons-runtime' ],
   plugins: [
+    nodeResolve({
+      jail: 'bn',
+      moduleDirectories: ['src', 'node_modules'],
+    }),
+      
     cleaner({
       targets: [
         './dist/',
