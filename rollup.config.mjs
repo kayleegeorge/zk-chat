@@ -2,7 +2,7 @@
 import typescript from 'rollup-plugin-typescript2'
 import cleaner from 'rollup-plugin-cleaner'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { nodeResolve } from '@rollup/plugin-node-resolve';
+import resolve from '@rollup/plugin-node-resolve'
 
 import * as fs from 'fs'
 
@@ -26,11 +26,14 @@ export default {
   // external: Object.keys(pkg.dependencies),
   // external: [ 'fs', 'ethers', 'rlnjs', 'protons-runtime' ],
   plugins: [
-    nodeResolve({
-      jail: 'bn',
-      moduleDirectories: ['src', 'node_modules'],
-    }),
-      
+    resolve( { jail: 'bn' } ),
+
+    // dts({
+    //   compilerOptions: {
+    //     baseUrl: ['src', 'node_modules'],
+    //     paths: ts.readConfigFile(tsConfigPath, p => readFileSync(p, 'utf8')).config.compilerOptions.paths,
+    //   },
+    // }),
     cleaner({
       targets: [
         './dist/',
@@ -39,11 +42,6 @@ export default {
     typescript({
       tsconfig: 'tsconfig.build.json',
       useTsconfigDeclarationDir: true,
-    }),
-    visualizer({
-      emitFile: true,
-      filename: 'stats.html',
-      template: 'sunburst',
     }),
   ],
 }

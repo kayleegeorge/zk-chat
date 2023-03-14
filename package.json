@@ -55,7 +55,7 @@
     "protons-runtime": "^5.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rlnjs": "github:Rate-Limiting-Nullifier/rlnjs",
+    "rlnjs": "^2.0.5",
     "uint8arrays": "^4.0.3"
   },
   "devDependencies": {
@@ -82,6 +82,7 @@
     "protons": "^7.0.2",
     "rollup": "^3.15.0",
     "rollup-plugin-cleaner": "^1.0.0",
+    "rollup-plugin-dts": "^5.2.0",
     "rollup-plugin-typescript2": "^0.34.1",
     "rollup-plugin-visualizer": "^5.9.0",
     "ts-jest": "^29.0.3",

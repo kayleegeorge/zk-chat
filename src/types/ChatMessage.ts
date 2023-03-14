@@ -1,5 +1,4 @@
 import { arrToStr, strToArr } from '../utils/formatting'
-import { RLNFullProof } from 'rlnjs'
 import * as protoType from '../proto/ChatMessage'
 import { MessageV0 } from 'js-waku/lib/waku_message/version_0'
 
@@ -11,7 +10,7 @@ export class ChatMessage {
   static fromUtf8String(
     text: string,
     epoch: bigint,
-    rlnProof?: RLNFullProof,
+    rlnProof?: Uint8Array,
     alias?: string,
   ): ChatMessage {
     const message = strToArr(text)
@@ -62,7 +61,7 @@ export class ChatMessage {
     return arrToStr(this.proto.message)
   }
 
-  get rlnProof(): RLNFullProof | undefined {
+  get rlnProof(): Uint8Array | undefined {
     return this.proto.rlnProof
   }
 

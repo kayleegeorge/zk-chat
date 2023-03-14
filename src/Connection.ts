@@ -2,6 +2,7 @@ import { WakuLight } from 'js-waku/lib/interfaces'
 //import { Decoder } from 'js-waku/lib/interfaces'
 // import { UnsubscribeFunction } from 'js-waku/lib/waku_filter/index'
 import RLN from './RLN'
+import { RLN as RLNjs } from 'rlnjs'
 import { ChatMessage } from './types/ChatMessage'
 import { dateToEpoch, strToArr } from './utils/formatting'
 import { DecoderV0, EncoderV0, MessageV0 } from 'js-waku/lib/waku_message/version_0'
@@ -97,10 +98,11 @@ class WakuConnection {
         console.log('No Proof with Message')
       } else {
         console.log(`Proof attached: ${rlnProof}`)
-        proofResult = await this.rlnInstance.verifyProof(rlnProof)
+        const rlnFullProof = await RLNjs.fromJSRLNProof(rlnProof)
+        proofResult = await this.rlnInstance.verifyProof(rlnFullProof)
         if (proofResult) {
           //this.updateChatStore([chatMessage])
-          this.rlnInstance.addProofToCache(rlnProof) // add proof to RLN cache on success
+          this.rlnInstance.addProofToCache(rlnFullProof) // add proof to RLN cache on success
         }
       }
       console.log(`Message Received from ${alias}: ${message}, sent at ${timestamp}`)
@@ -168,11 +170,12 @@ export class Connection {
 
     const rawMessage = { message: text, epoch: dateToEpoch(date) }
     const rlnProof = await this.rlnInstance.generateRLNProof(rawMessage.message, rawMessage.epoch)
+    const serializedRLNProof = await RLNjs.toJSRLNProof(rlnProof)
 
     const protoMsg = new ChatMessage({
       message: strToArr(text),
       epoch: dateToEpoch(date),
-      rlnProof: rlnProof,
+      rlnProof: serializedRLNProof,
       alias,
     })
     const payload = protoMsg.encode() // encode to proto
