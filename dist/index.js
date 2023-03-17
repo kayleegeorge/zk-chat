@@ -23307,7 +23307,7 @@ class Ed25519PrivateKey {
      * @returns {Promise<string>}
      */
     async id() {
-        const encoding = await identity$8.digest(this.public.bytes);
+        const encoding = identity$8.digest(this.public.bytes);
         return base58btc$8.encode(encoding.bytes).substring(1);
     }
     /**
@@ -23505,7 +23505,7 @@ function unmarshalSecp256k1PublicKey(bytes) {
     return new Secp256k1PublicKey(bytes);
 }
 async function generateKeyPair$1() {
-    const privateKeyBytes = await generateKey();
+    const privateKeyBytes = generateKey();
     return new Secp256k1PrivateKey(privateKeyBytes);
 }
 
@@ -31057,6 +31057,7 @@ const table$5 = [
     [276, 0, 'p2p-webrtc-direct'],
     [277, 0, 'p2p-stardust'],
     [280, 0, 'webrtc'],
+    [281, 0, 'webrtc-w3c'],
     [290, 0, 'p2p-circuit'],
     [301, 0, 'udt'],
     [302, 0, 'utp'],
@@ -31072,6 +31073,7 @@ const table$5 = [
     [445, 296, 'onion3'],
     [446, V$5, 'garlic64'],
     [448, 0, 'tls'],
+    [449, V$5, 'sni'],
     [460, 0, 'quic'],
     [461, 0, 'quic-v1'],
     [465, 0, 'webtransport'],
@@ -32721,6 +32723,7 @@ function convertToString$5(proto, buf) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return bytes2str$5(buf);
         case 421: // ipfs
@@ -32754,6 +32757,7 @@ function convertToBytes$5(proto, str) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return str2bytes$5(str);
         case 421: // ipfs
@@ -47754,7 +47758,7 @@ function pbStream(duplex, opts = {}) {
         pb: (proto) => {
             return {
                 read: async () => await W.readPB(proto),
-                write: (d) => W.writePB(d, proto)
+                write: (d) => { W.writePB(d, proto); }
             };
         },
         unwrap: () => {
@@ -56507,7 +56511,11 @@ function initAsClient(websocket, address, protocols, options) {
     });
   });
 
-  req.end();
+  if (opts.finishRequest) {
+    opts.finishRequest(req, websocket);
+  } else {
+    req.end();
+  }
 }
 
 /**
@@ -57946,6 +57954,7 @@ const table$4 = [
     [276, 0, 'p2p-webrtc-direct'],
     [277, 0, 'p2p-stardust'],
     [280, 0, 'webrtc'],
+    [281, 0, 'webrtc-w3c'],
     [290, 0, 'p2p-circuit'],
     [301, 0, 'udt'],
     [302, 0, 'utp'],
@@ -57961,6 +57970,7 @@ const table$4 = [
     [445, 296, 'onion3'],
     [446, V$4, 'garlic64'],
     [448, 0, 'tls'],
+    [449, V$4, 'sni'],
     [460, 0, 'quic'],
     [461, 0, 'quic-v1'],
     [465, 0, 'webtransport'],
@@ -59610,6 +59620,7 @@ function convertToString$4(proto, buf) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return bytes2str$4(buf);
         case 421: // ipfs
@@ -59643,6 +59654,7 @@ function convertToBytes$4(proto, str) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return str2bytes$4(str);
         case 421: // ipfs
@@ -60471,6 +60483,7 @@ const table$3 = [
     [276, 0, 'p2p-webrtc-direct'],
     [277, 0, 'p2p-stardust'],
     [280, 0, 'webrtc'],
+    [281, 0, 'webrtc-w3c'],
     [290, 0, 'p2p-circuit'],
     [301, 0, 'udt'],
     [302, 0, 'utp'],
@@ -60486,6 +60499,7 @@ const table$3 = [
     [445, 296, 'onion3'],
     [446, V$3, 'garlic64'],
     [448, 0, 'tls'],
+    [449, V$3, 'sni'],
     [460, 0, 'quic'],
     [461, 0, 'quic-v1'],
     [465, 0, 'webtransport'],
@@ -62135,6 +62149,7 @@ function convertToString$3(proto, buf) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return bytes2str$3(buf);
         case 421: // ipfs
@@ -62168,6 +62183,7 @@ function convertToBytes$3(proto, str) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return str2bytes$3(str);
         case 421: // ipfs
@@ -63143,7 +63159,8 @@ const table$2 = [
     [275, 0, 'p2p-webrtc-star'],
     [276, 0, 'p2p-webrtc-direct'],
     [277, 0, 'p2p-stardust'],
-    [280, 0, 'webrtc'],
+    [280, 0, 'webrtc-direct'],
+    [281, 0, 'webrtc'],
     [290, 0, 'p2p-circuit'],
     [301, 0, 'udt'],
     [302, 0, 'utp'],
@@ -63159,6 +63176,7 @@ const table$2 = [
     [445, 296, 'onion3'],
     [446, V$2, 'garlic64'],
     [448, 0, 'tls'],
+    [449, V$2, 'sni'],
     [460, 0, 'quic'],
     [461, 0, 'quic-v1'],
     [465, 0, 'webtransport'],
@@ -64808,6 +64826,7 @@ function convertToString$2(proto, buf) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return bytes2str$2(buf);
         case 421: // ipfs
@@ -64841,6 +64860,7 @@ function convertToBytes$2(proto, str) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return str2bytes$2(str);
         case 421: // ipfs
@@ -68519,13 +68539,13 @@ const Errors = {
  */
 function ipPortToMultiaddr(ip, port) {
     if (typeof ip !== 'string') {
-        throw errCode(new Error(`invalid ip provided: ${ip}`), Errors.ERR_INVALID_IP_PARAMETER); // eslint-disable-line @typescript-eslint/restrict-template-expressions
+        throw new CodeError(`invalid ip provided: ${ip}`, Errors.ERR_INVALID_IP_PARAMETER); // eslint-disable-line @typescript-eslint/restrict-template-expressions
     }
     if (typeof port === 'string') {
         port = parseInt(port);
     }
     if (isNaN(port)) {
-        throw errCode(new Error(`invalid port provided: ${port}`), Errors.ERR_INVALID_PORT_PARAMETER);
+        throw new CodeError(`invalid port provided: ${port}`, Errors.ERR_INVALID_PORT_PARAMETER);
     }
     try {
         // Test valid IPv4
@@ -68543,7 +68563,7 @@ function ipPortToMultiaddr(ip, port) {
     catch (err) {
         const errMsg = `invalid ip:port for creating a multiaddr: ${ip}:${port}`;
         log$J.error(errMsg);
-        throw errCode(new Error(errMsg), Errors.ERR_INVALID_IP);
+        throw new CodeError(errMsg, Errors.ERR_INVALID_IP);
     }
 }
 
@@ -68760,7 +68780,8 @@ const table$1 = [
     [275, 0, 'p2p-webrtc-star'],
     [276, 0, 'p2p-webrtc-direct'],
     [277, 0, 'p2p-stardust'],
-    [280, 0, 'webrtc'],
+    [280, 0, 'webrtc-direct'],
+    [281, 0, 'webrtc'],
     [290, 0, 'p2p-circuit'],
     [301, 0, 'udt'],
     [302, 0, 'utp'],
@@ -68776,6 +68797,7 @@ const table$1 = [
     [445, 296, 'onion3'],
     [446, V$1, 'garlic64'],
     [448, 0, 'tls'],
+    [449, V$1, 'sni'],
     [460, 0, 'quic'],
     [461, 0, 'quic-v1'],
     [465, 0, 'webtransport'],
@@ -70425,6 +70447,7 @@ function convertToString$1(proto, buf) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return bytes2str$1(buf);
         case 421: // ipfs
@@ -70458,6 +70481,7 @@ function convertToBytes$1(proto, str) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return str2bytes$1(str);
         case 421: // ipfs
@@ -71102,13 +71126,15 @@ const UDP = and(IP, base$1('udp'));
 const UTP = and(UDP, base$1('utp'));
 const QUIC = and(UDP, base$1('quic'));
 const WebSockets$1 = or$1(and(TCP, base$1('ws')), and(DNS, base$1('ws')));
-const WebSocketsSecure = or$1(and(TCP, base$1('wss')), and(DNS, base$1('wss')));
+const WebSocketsSecure = or$1(and(TCP, base$1('wss')), and(DNS, base$1('wss')), and(TCP, base$1('tls'), base$1('ws')), and(DNS, base$1('tls'), base$1('ws')));
 const HTTP = or$1(and(TCP, base$1('http')), and(IP, base$1('http')), and(DNS, base$1('http')));
 const HTTPS = or$1(and(TCP, base$1('https')), and(IP, base$1('https')), and(DNS, base$1('https')));
+const _WebRTC = and(UDP, base$1('webrtc'), base$1('certhash'));
+const WebRTC = or$1(and(_WebRTC, base$1('p2p')), _WebRTC);
 const WebRTCStar = or$1(and(WebSockets$1, base$1('p2p-webrtc-star'), base$1('p2p')), and(WebSocketsSecure, base$1('p2p-webrtc-star'), base$1('p2p')), and(WebSockets$1, base$1('p2p-webrtc-star')), and(WebSocketsSecure, base$1('p2p-webrtc-star')));
 const WebRTCDirect = or$1(and(HTTP, base$1('p2p-webrtc-direct'), base$1('p2p')), and(HTTPS, base$1('p2p-webrtc-direct'), base$1('p2p')), and(HTTP, base$1('p2p-webrtc-direct')), and(HTTPS, base$1('p2p-webrtc-direct')));
-const Reliable = or$1(WebSockets$1, WebSocketsSecure, HTTP, HTTPS, WebRTCStar, WebRTCDirect, TCP, UTP, QUIC, DNS);
-const _P2P = or$1(and(Reliable, base$1('p2p')), WebRTCStar, WebRTCDirect, base$1('p2p'));
+const Reliable = or$1(WebSockets$1, WebSocketsSecure, HTTP, HTTPS, WebRTCStar, WebRTCDirect, TCP, UTP, QUIC, DNS, WebRTC);
+const _P2P = or$1(and(Reliable, base$1('p2p')), WebRTCStar, WebRTCDirect, WebRTC, base$1('p2p'));
 const _Circuit = or$1(and(_P2P, base$1('p2p-circuit'), _P2P), and(_P2P, base$1('p2p-circuit')), and(base$1('p2p-circuit'), _P2P), and(Reliable, base$1('p2p-circuit')), and(base$1('p2p-circuit'), Reliable), base$1('p2p-circuit'));
 const CircuitRecursive = () => or$1(and(_Circuit, CircuitRecursive), _Circuit);
 const Circuit$1 = CircuitRecursive();
@@ -71159,7 +71185,7 @@ function and(...args) {
         toString: function () { return '{ ' + args.join(' ') + ' }'; },
         input: args,
         matches: makeMatchesFunction(partialMatch),
-        partialMatch: partialMatch
+        partialMatch
     };
 }
 function or$1(...args) {
@@ -71181,7 +71207,7 @@ function or$1(...args) {
         toString: function () { return '{ ' + args.join(' ') + ' }'; },
         input: args,
         matches: makeMatchesFunction(partialMatch),
-        partialMatch: partialMatch
+        partialMatch
     };
     return result;
 }
@@ -71212,8 +71238,8 @@ function base$1(n) {
     }
     return {
         toString: function () { return name; },
-        matches: matches,
-        partialMatch: partialMatch
+        matches,
+        partialMatch
     };
 }
 
@@ -76358,7 +76384,7 @@ function streamToMaConnection(props, options = {}) {
         if (maConn.timeline.close == null) {
             maConn.timeline.close = Date.now();
         }
-        return await Promise.resolve();
+        await Promise.resolve();
     }
     return maConn;
 }
@@ -93167,7 +93193,7 @@ function defaultSocketOptions(options) {
     });
 }
 
-const req = module$1.createRequire((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('index.js', document.baseURI).href)));
+const req = module$1.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (document.currentScript && document.currentScript.src || new URL('index.js', document.baseURI).href)));
 const pkg = req('../../package.json');
 const DEFAULT_SSDP_SIGNATURE = require$$1.format('node.js/%s UPnP/1.1 %s/%s', process.version.substring(1), pkg.name, pkg.version);
 function defaultSsdpOptions(options) {
@@ -96054,6 +96080,7 @@ const table = [
     [276, 0, 'p2p-webrtc-direct'],
     [277, 0, 'p2p-stardust'],
     [280, 0, 'webrtc'],
+    [281, 0, 'webrtc-w3c'],
     [290, 0, 'p2p-circuit'],
     [301, 0, 'udt'],
     [302, 0, 'utp'],
@@ -96069,6 +96096,7 @@ const table = [
     [445, 296, 'onion3'],
     [446, V, 'garlic64'],
     [448, 0, 'tls'],
+    [449, V, 'sni'],
     [460, 0, 'quic'],
     [461, 0, 'quic-v1'],
     [465, 0, 'webtransport'],
@@ -96183,6 +96211,7 @@ function convertToString(proto, buf) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return bytes2str(buf);
         case 421: // ipfs
@@ -96216,6 +96245,7 @@ function convertToBytes(proto, str) {
         case 55: // dns6
         case 56: // dnsaddr
         case 400: // unix
+        case 449: // sni
         case 777: // memory
             return str2bytes(str);
         case 421: // ipfs
