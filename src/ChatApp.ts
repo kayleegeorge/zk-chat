@@ -1,11 +1,11 @@
 import { Web3Provider } from '@ethersproject/providers'
 import ChatRoom from './ChatRoom'
 import { RoomType } from './types/ChatRoomOptions'
-import RLN from './RLN'
 import { Connection } from './Connection'
 import generateAppIdentifier from './utils/generateAppId'
 import { Contract } from 'ethers'
 import User from './User'
+import RLN from './RLN'
 
 export default class ChatApp {
   public appName: string

@@ -4,8 +4,8 @@ import { strToArr } from '../src/utils/formatting'
 import { ChatMessage } from '../src/types/ChatMessage'
 import { createWakuNode } from '../src/utils/createWakuNode'
 import { RLN_ABI, RLN_ADDRESS } from '../src/rln/contractInfo'
-import { Contract } from 'ethers'
 import User from '../src/User'
+import { Contract } from 'ethers'
 import generateAppIdentifier from '../src/utils/generateAppId'
 
 describe('test chat message encode / decode', () => {

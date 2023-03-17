@@ -3,11 +3,11 @@ import { genExternalNullifier, Registry, RLN as RLNjs, RLNFullProof, Cache } fro
 import { Contract } from 'ethers'
 import { Web3Provider } from '@ethersproject/providers'
 import * as path from 'path'
-import * as fs from 'fs'
+// import * as fs from 'fs'
 
 /* needed file paths */
 const vkeyPath = path.join('src', 'zkeyFiles', 'verification_key.json')
-const vkey = JSON.parse(fs.readFileSync(vkeyPath, 'utf-8'))
+const vkey = JSON.parse(vkeyPath) // doesn't work
 const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 

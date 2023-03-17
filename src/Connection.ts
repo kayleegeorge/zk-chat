@@ -1,13 +1,13 @@
 import { WakuLight } from 'js-waku/lib/interfaces'
-//import { Decoder } from 'js-waku/lib/interfaces'
-// import { UnsubscribeFunction } from 'js-waku/lib/waku_filter/index'
+import { DecoderV0, EncoderV0, MessageV0 } from 'js-waku/lib/waku_message/version_0'
 import RLN from './RLN'
-import { RLN as RLNjs } from 'rlnjs'
 import { ChatMessage } from './types/ChatMessage'
 import { dateToEpoch, strToArr } from './utils/formatting'
-import { DecoderV0, EncoderV0, MessageV0 } from 'js-waku/lib/waku_message/version_0'
+import { RLN as RLNjs } from 'rlnjs'
 import { getDates, TimePeriod } from './utils/getDates'
 import { createWakuNode } from './utils/createWakuNode'
+//import { Decoder } from 'js-waku/lib/interfaces'
+// import { UnsubscribeFunction } from 'js-waku/lib/waku_filter/index'
 
 enum ConnectionStatus {
   ready = 'ready',
