@@ -1,5 +1,5 @@
 import { GOERLI } from './utils/checkChain'
-import { genExternalNullifier, Registry, RLN as RLNjs, RLNFullProof, Cache } from 'rlnjs'
+import { Registry, RLN as RLNjs, RLNFullProof, Cache } from 'rlnjs'
 import { Contract } from 'ethers'
 import { Web3Provider } from '@ethersproject/providers'
 import * as path from 'path'
@@ -12,7 +12,7 @@ const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 
 export default class RLN {
-  public registry: Registry
+  registry: Registry
 
   public identityCommitments: bigint[]
 
@@ -50,15 +50,15 @@ export default class RLN {
 
   /* generate RLN Proof */
   public async generateRLNProof(msg: string, epoch: bigint) {
-    const epochNullifier = genExternalNullifier(epoch.toString())
-    const merkleProof = await this.registry.generateMerkleProof(this.identityCommitment)
-    const proof = this.rlnjs.generateProof(msg, merkleProof, epochNullifier)
+    // const epochNullifier = genExternalNullifier(epoch.toString())
+    const merkleProof = this.registry.generateMerkleProof(this.identityCommitment)
+    const proof = this.rlnjs.generateProof(msg, merkleProof)
     return proof
   }
 
   /* RLN proof verification */
   public async verifyProof(rlnProof: RLNFullProof) {
-    return RLNjs.verifyProof(vkey, rlnProof)
+    return RLNjs.verifySNARKProof(rlnProof)
   }
 
   /* construct RLN member tree locally */

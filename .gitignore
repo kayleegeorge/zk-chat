@@ -1,6 +1,6 @@
 # dependencies
 /node_modules
-/dist
+# /dist
 .env
 /rlnjs
 /rln-circuits
