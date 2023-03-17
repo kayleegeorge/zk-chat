@@ -14,17 +14,17 @@ const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 export default class RLN {
   registry: Registry
 
-  public identityCommitments: bigint[]
+  identityCommitments: bigint[]
 
-  public contract: Contract | undefined
+  contract: Contract | undefined
 
-  public rlnjs: RLNjs
+  rlnjs: RLNjs
 
-  public cache: Cache
+  cache: Cache
 
-  public rlnIdentifier: bigint
+  rlnIdentifier: bigint
 
-  public identityCommitment: bigint
+  identityCommitment: bigint
   // private memIndex: number
 
   constructor(onChain?: Contract, existingIdentity?: string, rlnIdentifier?: bigint) {
@@ -50,15 +50,15 @@ export default class RLN {
 
   /* generate RLN Proof */
   public async generateRLNProof(msg: string, epoch: bigint) {
-    // const epochNullifier = genExternalNullifier(epoch.toString())
+    const epochNullifier = RLNjs._genNullifier(epoch, this.rlnIdentifier)
     const merkleProof = this.registry.generateMerkleProof(this.identityCommitment)
-    const proof = this.rlnjs.generateProof(msg, merkleProof)
+    const proof = this.rlnjs.generateProof(msg, merkleProof, epochNullifier)
     return proof
   }
 
   /* RLN proof verification */
   public async verifyProof(rlnProof: RLNFullProof) {
-    return RLNjs.verifySNARKProof(rlnProof)
+    return RLNjs.verifySNARKProof(vkey, rlnProof.snarkProof)
   }
 
   /* construct RLN member tree locally */
