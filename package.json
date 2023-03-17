@@ -19,16 +19,12 @@
     "url": "https://github.com/kayleegeorge/zk-chat/issues"
   },
   "homepage": "https://github.com/kayleegeorge/zk-chat#readme",
-  "main": "./dist/index.node.js",
+  "main": "./dist/index.js",
   "types": "dist/index.d.ts",
-  "module": "./dist/index.js",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js"
   },
-  "type": "module",
   "directories": {
     "dist": "./dist",
     "src": "./src",
