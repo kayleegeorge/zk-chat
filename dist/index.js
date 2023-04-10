@@ -99009,11 +99009,6 @@ function generateAppIdentifier (appName) {
 // const vkey = JSON.parse(vkeyPath) // doesn't work
 // const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 // const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
-var zkeyFiles = {
-    vkeyPath: "/zkeyFiles/verification_key.json",
-    wasmFilePath: "/zkeyFiles/rln.wasm",
-    finalZkeyPath: "/zkeyFiles/rln_final.zkey"
-};
 var RLN = /** @class */ (function () {
     // private memIndex: number
     function RLN(appName, onChain, rlnIdentifier) {
@@ -99026,17 +99021,17 @@ var RLN = /** @class */ (function () {
             : generateAppIdentifier(appName);
     }
     /* call initRLN to create rln instance */
-    RLN.prototype.initRLN = function (existingIdentity) {
+    RLN.prototype.initRLN = function (vKeyPath, wasmFilePath, finalZkeyPath, existingIdentity) {
         return __awaiter(this, void 0, void 0, function () {
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         _a = this;
-                        return [4 /*yield*/, fetch(zkeyFiles.vkeyPath).then(function (res) { return res.json(); })];
+                        return [4 /*yield*/, fetch(vKeyPath).then(function (res) { return res.json(); })];
                     case 1:
                         _a.vKey = _b.sent();
-                        this.rlnjs = new rlnjs.RLN(zkeyFiles.wasmFilePath, zkeyFiles.finalZkeyPath, this.vKey, this.rlnIdentifier, existingIdentity);
+                        this.rlnjs = new rlnjs.RLN(wasmFilePath, finalZkeyPath, this.vKey, this.rlnIdentifier, existingIdentity);
                         this.rlnIdentifier = this.rlnjs.rlnIdentifier;
                         this.cache = new rlnjs.Cache(this.rlnjs.rlnIdentifier);
                         this.identityCommitment = this.rlnjs.identity.getCommitment();

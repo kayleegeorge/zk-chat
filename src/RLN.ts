@@ -12,12 +12,6 @@ import generateAppIdentifier from "./utils/generateAppId"
 // const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 // const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 
-const zkeyFiles = {
-  vkeyPath: "/zkeyFiles/verification_key.json",
-  wasmFilePath: "/zkeyFiles/rln.wasm",
-  finalZkeyPath: "/zkeyFiles/rln_final.zkey"
-}
-
 export default class RLN {
   registry: Registry
 
@@ -47,11 +41,11 @@ export default class RLN {
   }
 
   /* call initRLN to create rln instance */
-  public async initRLN(existingIdentity?: string) {
-    this.vKey = await fetch(zkeyFiles.vkeyPath).then((res) => res.json())
+  public async initRLN(vKeyPath: string, wasmFilePath: string, finalZkeyPath: string, existingIdentity?: string) {
+    this.vKey = await fetch(vKeyPath).then((res) => res.json())
     this.rlnjs = new RLNjs(
-      zkeyFiles.wasmFilePath,
-      zkeyFiles.finalZkeyPath,
+      wasmFilePath,
+      finalZkeyPath,
       this.vKey,
       this.rlnIdentifier,
       existingIdentity

@@ -11,7 +11,7 @@ export default class RLN {
     identityCommitment?: bigint;
     vKey?: any;
     constructor(appName: string, onChain?: Contract, rlnIdentifier?: bigint);
-    initRLN(existingIdentity?: string): Promise<void>;
+    initRLN(vKeyPath: string, wasmFilePath: string, finalZkeyPath: string, existingIdentity?: string): Promise<void>;
     initOnChain(): Promise<void>;
     generateRLNProof(msg: string, epoch: bigint): Promise<RLNFullProof>;
     verifyProof(rlnProof: RLNFullProof): Promise<boolean>;
