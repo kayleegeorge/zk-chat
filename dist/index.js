@@ -6192,7 +6192,7 @@ function decode$L(options) {
 }
 /**
  * @param {*} reader
- * @param {import('./types').DecoderOptions} [options]
+ * @param {import('.').DecoderOptions} [options]
  * @returns
  */
 decode$L.fromReader = (reader, options) => {
