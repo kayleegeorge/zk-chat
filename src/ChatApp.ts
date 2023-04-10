@@ -2,7 +2,7 @@ import { Web3Provider } from '@ethersproject/providers'
 import ChatRoom from './ChatRoom'
 import { RoomType } from './types/ChatRoomOptions'
 import { Connection } from './Connection'
-import generateAppIdentifier from './utils/generateAppId'
+
 import { Contract } from 'ethers'
 import User from './User'
 import RLN from './RLN'
@@ -24,15 +24,14 @@ export default class ChatApp {
     appName: string,
     onChain?: Contract,
     provider?: Web3Provider,
-    existingIdentity?: string,
     rlnIdentifier?: bigint,
   ) {
     this.appName = appName 
     this.onChain = onChain
 
     this.provider = provider
-    rlnIdentifier = rlnIdentifier ? rlnIdentifier : generateAppIdentifier(appName)
-    this.rln = new RLN(onChain, existingIdentity, rlnIdentifier) // might need to pass provider?
+  
+    this.rln = new RLN(appName, onChain, rlnIdentifier) // might need to pass provider?
     this.connection = new Connection(this.rln)
 
     this.chatRoomStore = new Map<string, ChatRoom>()
@@ -41,7 +40,7 @@ export default class ChatApp {
   /* app-level user registration: add user to chatApp and RLN registry */
   public async registerUserOnChain() {
     if (this.provider) await this.rln.registerUserOnRLNContract(this.provider)
-    return this.rln.rlnjs.identity
+    return this.rln.rlnjs?.identity
   }
 
   /* create chat room */

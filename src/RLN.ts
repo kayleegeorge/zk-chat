@@ -2,14 +2,21 @@ import { GOERLI } from './utils/checkChain'
 import { Registry, RLN as RLNjs, RLNFullProof, Cache } from 'rlnjs'
 import { Contract } from 'ethers'
 import { Web3Provider } from '@ethersproject/providers'
-import * as path from 'path'
+import generateAppIdentifier from './utils/generateAppId'
+// import * as path from 'path'
 // import * as fs from 'fs'
 
 /* needed file paths */
-const vkeyPath = path.join('src', 'zkeyFiles', 'verification_key.json')
-const vkey = JSON.parse(vkeyPath) // doesn't work
-const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
-const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
+// const vkeyPath = path.join('src', 'zkeyFiles', 'verification_key.json')
+// const vkey = JSON.parse(vkeyPath) // doesn't work
+// const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
+// const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
+
+const zkeyFiles = {
+  vkeyPath: 'zkeyFiles/verification_key.json',
+  wasmFilePath: 'zkeyFiles/rln.wasm',
+  finalZkeyPath: 'zkeyFiles/rln_final.zkey'
+}
 
 export default class RLN {
   registry: Registry
@@ -18,26 +25,31 @@ export default class RLN {
 
   contract: Contract | undefined
 
-  rlnjs: RLNjs
-
-  cache: Cache
-
   rlnIdentifier: bigint
 
-  identityCommitment: bigint
+  rlnjs?: RLNjs
+
+  cache?: Cache
+
+  identityCommitment?: bigint
+
+  vKey?: any
   // private memIndex: number
 
-  constructor(onChain?: Contract, existingIdentity?: string, rlnIdentifier?: bigint) {
-    // RLN
+  constructor(appName: string, onChain?: Contract, rlnIdentifier?: bigint) {
+    // create RLN
     this.registry = new Registry()
     this.contract = onChain
-
-    this.rlnjs = new RLNjs(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity)
-    this.rlnIdentifier = this.rlnjs.rlnIdentifier
     this.identityCommitments = []
-    this.cache = new Cache(this.rlnjs.rlnIdentifier)
+    this.rlnIdentifier = rlnIdentifier ? rlnIdentifier : generateAppIdentifier(appName)
+  }
 
-    // RLN member
+  /* call initRLN to create rln instance */
+  public async initRLN(existingIdentity?: string) {
+    this.vKey = await fetch(zkeyFiles.vkeyPath).then((res) => res.json())
+    this.rlnjs = new RLNjs(zkeyFiles.wasmFilePath, zkeyFiles.finalZkeyPath, this.vKey, this.rlnIdentifier, existingIdentity)
+    this.rlnIdentifier = this.rlnjs.rlnIdentifier
+    this.cache = new Cache(this.rlnjs.rlnIdentifier)
     this.identityCommitment = this.rlnjs.identity.getCommitment()
     this.registry.addMember(this.identityCommitment)
   }
@@ -50,6 +62,7 @@ export default class RLN {
 
   /* generate RLN Proof */
   public async generateRLNProof(msg: string, epoch: bigint) {
+    if (!this.rlnjs || !this.identityCommitment) throw "rln not initialized"
     const epochNullifier = RLNjs._genNullifier(epoch, this.rlnIdentifier)
     const merkleProof = this.registry.generateMerkleProof(this.identityCommitment)
     const proof = this.rlnjs.generateProof(msg, merkleProof, epochNullifier)
@@ -58,7 +71,7 @@ export default class RLN {
 
   /* RLN proof verification */
   public async verifyProof(rlnProof: RLNFullProof) {
-    return RLNjs.verifySNARKProof(vkey, rlnProof.snarkProof)
+    return RLNjs.verifySNARKProof(this.vKey, rlnProof.snarkProof)
   }
 
   /* construct RLN member tree locally */
@@ -97,6 +110,7 @@ export default class RLN {
 
   /* handle adding proof to cache */
   public addProofToCache(proof: RLNFullProof) {
+    if (!this.cache) throw "cache not initialized"
     const result = this.cache.addProof(proof)
 
     // if breached, slash the member id commitment
@@ -114,11 +128,13 @@ export default class RLN {
   
   /* returns rln member Identity */
   public getIdentityAsString() {
+    if (!this.rlnjs) throw "rln not initialized"
     return this.rlnjs.identity.toString()
   }
 
   /* generate RLN credentials */
   public generateRLNcredentials(appName: string) {
+    if (!this.rlnjs) throw "rln not initialized"
     return {
       'application': appName,
       'appIdentifier': this.rlnjs.rlnIdentifier,
@@ -128,7 +144,7 @@ export default class RLN {
         'membershipGroups': [{
           'chainId': GOERLI, // chainge to optimism when time
           'contract': this.contract,
-          'treeIndex': this.registry.indexOf(this.identityCommitment),
+          // 'treeIndex': this.registry.indexOf(this.identityCommitment),
         }],
       }],
       'version': 1, // change

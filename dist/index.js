@@ -20,7 +20,7 @@ var cluster$1 = require('cluster');
 var require$$0$4 = require('stream');
 var require$$0$2 = require('zlib');
 var require$$0$1 = require('fs');
-var path = require('path');
+var require$$1$1 = require('path');
 var require$$0$3 = require('buffer');
 var require$$3 = require('net');
 var require$$4 = require('tls');
@@ -28,7 +28,7 @@ var require$$0$5 = require('events');
 var https$1 = require('https');
 var http$2 = require('http');
 var require$$7 = require('url');
-var require$$1$1 = require('string_decoder');
+var require$$1$2 = require('string_decoder');
 var require$$4$1 = require('timers');
 var dgram = require('dgram');
 var module$1 = require('module');
@@ -52,7 +52,6 @@ function _interopNamespaceDefault(e) {
 }
 
 var crypto__namespace = /*#__PURE__*/_interopNamespaceDefault(crypto$4);
-var path__namespace = /*#__PURE__*/_interopNamespaceDefault(path);
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -52719,7 +52718,7 @@ function requireNodeGypBuild$1 () {
 	if (hasRequiredNodeGypBuild$1) return nodeGypBuild;
 	hasRequiredNodeGypBuild$1 = 1;
 	var fs = require$$0$1;
-	var path$1 = path;
+	var path = require$$1$1;
 	var os$1 = os;
 
 	// Workaround to fix webpack's build warnings: 'the request of a dependency is an expression'
@@ -52743,25 +52742,25 @@ function requireNodeGypBuild$1 () {
 	}
 
 	load.resolve = load.path = function (dir) {
-	  dir = path$1.resolve(dir || '.');
+	  dir = path.resolve(dir || '.');
 
 	  try {
-	    var name = runtimeRequire(path$1.join(dir, 'package.json')).name.toUpperCase().replace(/-/g, '_');
+	    var name = runtimeRequire(path.join(dir, 'package.json')).name.toUpperCase().replace(/-/g, '_');
 	    if (process.env[name + '_PREBUILD']) dir = process.env[name + '_PREBUILD'];
 	  } catch (err) {}
 
 	  if (!prebuildsOnly) {
-	    var release = getFirst(path$1.join(dir, 'build/Release'), matchBuild);
+	    var release = getFirst(path.join(dir, 'build/Release'), matchBuild);
 	    if (release) return release
 
-	    var debug = getFirst(path$1.join(dir, 'build/Debug'), matchBuild);
+	    var debug = getFirst(path.join(dir, 'build/Debug'), matchBuild);
 	    if (debug) return debug
 	  }
 
 	  var prebuild = resolve(dir);
 	  if (prebuild) return prebuild
 
-	  var nearby = resolve(path$1.dirname(process.execPath));
+	  var nearby = resolve(path.dirname(process.execPath));
 	  if (nearby) return nearby
 
 	  var target = [
@@ -52781,16 +52780,16 @@ function requireNodeGypBuild$1 () {
 
 	  function resolve (dir) {
 	    // Find matching "prebuilds/<platform>-<arch>" directory
-	    var tuples = readdirSync(path$1.join(dir, 'prebuilds')).map(parseTuple);
+	    var tuples = readdirSync(path.join(dir, 'prebuilds')).map(parseTuple);
 	    var tuple = tuples.filter(matchTuple(platform, arch)).sort(compareTuples)[0];
 	    if (!tuple) return
 
 	    // Find most specific flavor first
-	    var prebuilds = path$1.join(dir, 'prebuilds', tuple.name);
+	    var prebuilds = path.join(dir, 'prebuilds', tuple.name);
 	    var parsed = readdirSync(prebuilds).map(parseTags);
 	    var candidates = parsed.filter(matchTags(runtime, abi));
 	    var winner = candidates.sort(compareTags(runtime))[0];
-	    if (winner) return path$1.join(prebuilds, winner.file)
+	    if (winner) return path.join(prebuilds, winner.file)
 	  }
 	};
 
@@ -52804,7 +52803,7 @@ function requireNodeGypBuild$1 () {
 
 	function getFirst (dir, filter) {
 	  var files = readdirSync(dir).filter(filter);
-	  return files[0] && path$1.join(dir, files[0])
+	  return files[0] && path.join(dir, files[0])
 	}
 
 	function matchBuild (name) {
@@ -91038,7 +91037,7 @@ function requireSax () {
 		      typeof Buffer.isBuffer === 'function' &&
 		      Buffer.isBuffer(data)) {
 		      if (!this._decoder) {
-		        var SD = require$$1$1.StringDecoder;
+		        var SD = require$$1$2.StringDecoder;
 		        this._decoder = new SD('utf8');
 		      }
 		      data = this._decoder.write(data);
@@ -93486,7 +93485,7 @@ function initRequest(url, init) {
         throw new Error('Invalid protocol ' + url.protocol);
     }
 }
-async function fetch(url, init = {}) {
+async function fetch$1(url, init = {}) {
     return await new Promise((resolve, reject) => {
         const request = initRequest(new URL(url), init);
         if (init.body != null) {
@@ -93518,7 +93517,7 @@ async function resolveLocation(location) {
     if (location.substring(0, 4) !== 'http') {
         location = `http://${location}`;
     }
-    const text = await fetch(location, {
+    const text = await fetch$1(location, {
         method: 'GET',
         headers: {
             accept: 'application/xml'
@@ -101001,6 +101000,8 @@ var Connection = /** @class */ (function () {
     return Connection;
 }());
 
+var GOERLI = 5;
+
 function generateAppIdentifier (appName) {
     var result = '';
     for (var i = 0; i < appName.length; i++) {
@@ -101009,28 +101010,48 @@ function generateAppIdentifier (appName) {
     return BigInt(parseInt(result, 16));
 }
 
-var GOERLI = 5;
-
+// import * as path from 'path'
 // import * as fs from 'fs'
 /* needed file paths */
-var vkeyPath = path__namespace.join('src', 'zkeyFiles', 'verification_key.json');
-var vkey = JSON.parse(vkeyPath); // doesn't work
-var wasmFilePath = path__namespace.join('./zkeyFiles', 'rln', 'rln.wasm');
-var finalZkeyPath = path__namespace.join('./zkeyFiles', 'rln', 'rln_final.zkey');
+// const vkeyPath = path.join('src', 'zkeyFiles', 'verification_key.json')
+// const vkey = JSON.parse(vkeyPath) // doesn't work
+// const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
+// const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
+var zkeyFiles = {
+    vkeyPath: 'zkeyFiles/verification_key.json',
+    wasmFilePath: 'zkeyFiles/rln.wasm',
+    finalZkeyPath: 'zkeyFiles/rln_final.zkey'
+};
 var RLN = /** @class */ (function () {
     // private memIndex: number
-    function RLN(onChain, existingIdentity, rlnIdentifier) {
-        // RLN
+    function RLN(appName, onChain, rlnIdentifier) {
+        // create RLN
         this.registry = new rlnjs.Registry();
         this.contract = onChain;
-        this.rlnjs = new rlnjs.RLN(wasmFilePath, finalZkeyPath, vkey, rlnIdentifier, existingIdentity);
-        this.rlnIdentifier = this.rlnjs.rlnIdentifier;
         this.identityCommitments = [];
-        this.cache = new rlnjs.Cache(this.rlnjs.rlnIdentifier);
-        // RLN member
-        this.identityCommitment = this.rlnjs.identity.getCommitment();
-        this.registry.addMember(this.identityCommitment);
+        this.rlnIdentifier = rlnIdentifier ? rlnIdentifier : generateAppIdentifier(appName);
     }
+    /* call initRLN to create rln instance */
+    RLN.prototype.initRLN = function (existingIdentity) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this;
+                        return [4 /*yield*/, fetch(zkeyFiles.vkeyPath).then(function (res) { return res.json(); })];
+                    case 1:
+                        _a.vKey = _b.sent();
+                        this.rlnjs = new rlnjs.RLN(zkeyFiles.wasmFilePath, zkeyFiles.finalZkeyPath, this.vKey, this.rlnIdentifier, existingIdentity);
+                        this.rlnIdentifier = this.rlnjs.rlnIdentifier;
+                        this.cache = new rlnjs.Cache(this.rlnjs.rlnIdentifier);
+                        this.identityCommitment = this.rlnjs.identity.getCommitment();
+                        this.registry.addMember(this.identityCommitment);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     /* handle init on chain stuff */
     RLN.prototype.initOnChain = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -101052,6 +101073,8 @@ var RLN = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var epochNullifier, merkleProof, proof;
             return __generator(this, function (_a) {
+                if (!this.rlnjs || !this.identityCommitment)
+                    throw "rln not initialized";
                 epochNullifier = rlnjs.RLN._genNullifier(epoch, this.rlnIdentifier);
                 merkleProof = this.registry.generateMerkleProof(this.identityCommitment);
                 proof = this.rlnjs.generateProof(msg, merkleProof, epochNullifier);
@@ -101063,7 +101086,7 @@ var RLN = /** @class */ (function () {
     RLN.prototype.verifyProof = function (rlnProof) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, rlnjs.RLN.verifySNARKProof(vkey, rlnProof.snarkProof)];
+                return [2 /*return*/, rlnjs.RLN.verifySNARKProof(this.vKey, rlnProof.snarkProof)];
             });
         });
     };
@@ -101123,6 +101146,8 @@ var RLN = /** @class */ (function () {
     };
     /* handle adding proof to cache */
     RLN.prototype.addProofToCache = function (proof) {
+        if (!this.cache)
+            throw "cache not initialized";
         var result = this.cache.addProof(proof);
         // if breached, slash the member id commitment
         if (result.secret) {
@@ -101137,10 +101162,14 @@ var RLN = /** @class */ (function () {
     };
     /* returns rln member Identity */
     RLN.prototype.getIdentityAsString = function () {
+        if (!this.rlnjs)
+            throw "rln not initialized";
         return this.rlnjs.identity.toString();
     };
     /* generate RLN credentials */
     RLN.prototype.generateRLNcredentials = function (appName) {
+        if (!this.rlnjs)
+            throw "rln not initialized";
         return {
             'application': appName,
             'appIdentifier': this.rlnjs.rlnIdentifier,
@@ -101150,7 +101179,7 @@ var RLN = /** @class */ (function () {
                     'membershipGroups': [{
                             'chainId': GOERLI,
                             'contract': this.contract,
-                            'treeIndex': this.registry.indexOf(this.identityCommitment),
+                            // 'treeIndex': this.registry.indexOf(this.identityCommitment),
                         }],
                 }],
             'version': 1, // change
@@ -101160,27 +101189,27 @@ var RLN = /** @class */ (function () {
 }());
 
 var ChatApp = /** @class */ (function () {
-    function ChatApp(appName, onChain, provider, existingIdentity, rlnIdentifier) {
+    function ChatApp(appName, onChain, provider, rlnIdentifier) {
         this.appName = appName;
         this.onChain = onChain;
         this.provider = provider;
-        rlnIdentifier = rlnIdentifier ? rlnIdentifier : generateAppIdentifier(appName);
-        this.rln = new RLN(onChain, existingIdentity, rlnIdentifier); // might need to pass provider?
+        this.rln = new RLN(appName, onChain, rlnIdentifier); // might need to pass provider?
         this.connection = new Connection(this.rln);
         this.chatRoomStore = new Map();
     }
     /* app-level user registration: add user to chatApp and RLN registry */
     ChatApp.prototype.registerUserOnChain = function () {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         if (!this.provider) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.rln.registerUserOnRLNContract(this.provider)];
                     case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: return [2 /*return*/, this.rln.rlnjs.identity];
+                        _b.sent();
+                        _b.label = 2;
+                    case 2: return [2 /*return*/, (_a = this.rln.rlnjs) === null || _a === void 0 ? void 0 : _a.identity];
                 }
             });
         });

@@ -5,11 +5,13 @@ export default class RLN {
     registry: Registry;
     identityCommitments: bigint[];
     contract: Contract | undefined;
-    rlnjs: RLNjs;
-    cache: Cache;
     rlnIdentifier: bigint;
-    identityCommitment: bigint;
-    constructor(onChain?: Contract, existingIdentity?: string, rlnIdentifier?: bigint);
+    rlnjs?: RLNjs;
+    cache?: Cache;
+    identityCommitment?: bigint;
+    vKey?: any;
+    constructor(appName: string, onChain?: Contract, rlnIdentifier?: bigint);
+    initRLN(existingIdentity?: string): Promise<void>;
     initOnChain(): Promise<void>;
     generateRLNProof(msg: string, epoch: bigint): Promise<RLNFullProof>;
     verifyProof(rlnProof: RLNFullProof): Promise<boolean>;
@@ -22,11 +24,10 @@ export default class RLN {
         appIdentifier: bigint;
         credentials: {
             key: bigint;
-            commitment: bigint;
+            commitment: bigint | undefined;
             membershipGroups: {
                 chainId: number;
                 contract: Contract | undefined;
-                treeIndex: number;
             }[];
         }[];
         version: number;
