@@ -13,9 +13,9 @@ import generateAppIdentifier from "./utils/generateAppId"
 // const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 
 const zkeyFiles = {
-  vkeyPath: "zkeyFiles/verification_key.json",
-  wasmFilePath: "zkeyFiles/rln.wasm",
-  finalZkeyPath: "zkeyFiles/rln_final.zkey"
+  vkeyPath: "/zkeyFiles/verification_key.json",
+  wasmFilePath: "/zkeyFiles/rln.wasm",
+  finalZkeyPath: "/zkeyFiles/rln_final.zkey"
 }
 
 export default class RLN {
