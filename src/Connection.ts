@@ -148,20 +148,20 @@ export class Connection {
     this.connectionInstance = new WakuConnection(rlnInstance)
   }
 
-  public connect() {
-    this.connectionInstance.connect()
+  public async connect() {
+    await this.connectionInstance.connect()
   }
 
-  public disconnect() {
-    this.connectionInstance.disconnect()
+  public async disconnect() {
+    await this.connectionInstance.disconnect()
   }
 
-  public subscribeToRoom(contentTopic: string) {
-    this.connectionInstance.subscribe(contentTopic)
+  public async subscribeToRoom(contentTopic: string) {
+    await this.connectionInstance.subscribe(contentTopic)
   }
 
-  public unsubscribeFromRoom(contentTopic: string) {
-    this.connectionInstance.unsubscribe(contentTopic)
+  public async unsubscribeFromRoom(contentTopic: string) {
+    await this.connectionInstance.unsubscribe(contentTopic)
   }
 
   /* send message by encoding to protobuf -> payload for waku message */

@@ -9,10 +9,10 @@ export declare class Connection {
     private connectionInstance;
     private rlnInstance;
     constructor(rlnInstance: RLN);
-    connect(): void;
-    disconnect(): void;
-    subscribeToRoom(contentTopic: string): void;
-    unsubscribeFromRoom(contentTopic: string): void;
+    connect(): Promise<void>;
+    disconnect(): Promise<void>;
+    subscribeToRoom(contentTopic: string): Promise<void>;
+    unsubscribeFromRoom(contentTopic: string): Promise<void>;
     sendMessage(text: string, alias: string, roomName: string): Promise<void>;
     retrieveMessageStore(contentTopic: string): Promise<void>;
 }

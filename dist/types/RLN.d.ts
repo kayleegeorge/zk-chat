@@ -1,6 +1,6 @@
-import { Registry, RLN as RLNjs, RLNFullProof, Cache } from 'rlnjs';
-import { Contract } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
+import { Registry, RLN as RLNjs, RLNFullProof, Cache } from "rlnjs";
+import { Contract } from "ethers";
+import { Web3Provider } from "@ethersproject/providers";
 export default class RLN {
     registry: Registry;
     identityCommitments: bigint[];

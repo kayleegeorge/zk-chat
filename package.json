@@ -46,6 +46,7 @@
     "@waku/rln": "^0.0.12",
     "@zk-kit/identity": "^1.4.1",
     "@zk-kit/protocols": "^1.11.1",
+    "js-waku": "^0.30.0",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
