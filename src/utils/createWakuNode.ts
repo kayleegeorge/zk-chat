@@ -10,7 +10,7 @@ export async function createWakuNode(): Promise<WakuLight | undefined> {
     await waku.start()
     await waitForRemotePeer(waku,
       [Protocols.Store, Protocols.Filter, Protocols.LightPush])
-    console.log('success!')
+    console.log('success creating waku node!')
     return waku
   } catch (e) {
     console.error('Issue creating waku', e)

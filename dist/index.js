@@ -127,7 +127,7 @@ function __asyncValues(o) {
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 }
 
-var RoomType;
+exports.RoomType = void 0;
 (function (RoomType) {
     RoomType["PubGroup"] = "Public";
     RoomType["PrivGroup"] = "Private";
@@ -137,7 +137,7 @@ var RoomType;
       *SemaphoreGroup = 'Semaphore', // can join group if in a certain Semaphore group
       * GatekeepersGroup = 'Gatekeepers', // only appointed gatekeepers can add members
       */
-})(RoomType || (RoomType = {}));
+})(exports.RoomType || (exports.RoomType = {}));
 
 /*
  * Create a chat room
@@ -183,7 +183,7 @@ var ChatRoom = /** @class */ (function () {
     ChatRoom.prototype.addChatMember = function (member) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
+                if (this.roomType == exports.RoomType.PrivGroup && this.chatMembers.length == 5) {
                     console.error('Cannot add more than 5 members to a private group');
                 }
                 else {
@@ -6192,7 +6192,7 @@ function decode$L(options) {
 }
 /**
  * @param {*} reader
- * @param {import('.').DecoderOptions} [options]
+ * @param {import('./types').DecoderOptions} [options]
  * @returns
  */
 decode$L.fromReader = (reader, options) => {
@@ -98648,7 +98648,7 @@ function createWakuNode() {
                     return [4 /*yield*/, waitForRemotePeer(waku, [jsWaku.Protocols.Store, jsWaku.Protocols.Filter, jsWaku.Protocols.LightPush])];
                 case 3:
                     _a.sent();
-                    console.log('success!');
+                    console.log('success creating waku node!');
                     return [2 /*return*/, waku];
                 case 4:
                     e_1 = _a.sent();
