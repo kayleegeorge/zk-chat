@@ -127,7 +127,7 @@ function __asyncValues(o) {
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 }
 
-exports.RoomType = void 0;
+var RoomType;
 (function (RoomType) {
     RoomType["PubGroup"] = "Public";
     RoomType["PrivGroup"] = "Private";
@@ -137,7 +137,8 @@ exports.RoomType = void 0;
       *SemaphoreGroup = 'Semaphore', // can join group if in a certain Semaphore group
       * GatekeepersGroup = 'Gatekeepers', // only appointed gatekeepers can add members
       */
-})(exports.RoomType || (exports.RoomType = {}));
+})(RoomType || (RoomType = {}));
+var RoomType$1 = RoomType;
 
 /*
  * Create a chat room
@@ -183,7 +184,7 @@ var ChatRoom = /** @class */ (function () {
     ChatRoom.prototype.addChatMember = function (member) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                if (this.roomType == exports.RoomType.PrivGroup && this.chatMembers.length == 5) {
+                if (this.roomType == RoomType.PrivGroup && this.chatMembers.length == 5) {
                     console.error('Cannot add more than 5 members to a private group');
                 }
                 else {
@@ -99243,4 +99244,5 @@ var ChatApp = /** @class */ (function () {
 
 exports.ChatApp = ChatApp;
 exports.ChatRoom = ChatRoom;
+exports.ChatRoomOptions = RoomType$1;
 exports.RLN = RLN;

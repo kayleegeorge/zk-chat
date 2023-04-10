@@ -11,3 +11,4 @@ export enum RoomType {
     */
 }
 
+export default RoomType
