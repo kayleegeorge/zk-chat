@@ -99010,9 +99010,9 @@ function generateAppIdentifier (appName) {
 // const wasmFilePath = path.join('./zkeyFiles', 'rln', 'rln.wasm')
 // const finalZkeyPath = path.join('./zkeyFiles', 'rln', 'rln_final.zkey')
 var zkeyFiles = {
-    vkeyPath: "zkeyFiles/verification_key.json",
-    wasmFilePath: "zkeyFiles/rln.wasm",
-    finalZkeyPath: "zkeyFiles/rln_final.zkey"
+    vkeyPath: "/zkeyFiles/verification_key.json",
+    wasmFilePath: "/zkeyFiles/rln.wasm",
+    finalZkeyPath: "/zkeyFiles/rln_final.zkey"
 };
 var RLN = /** @class */ (function () {
     // private memIndex: number
